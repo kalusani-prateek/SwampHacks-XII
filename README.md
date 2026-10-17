@@ -11,6 +11,8 @@ Pull from 50 real locations Planet conditions ( hazard index )
  - wildlife sightins
 
 
+
+
 Front end: 
 Prediction at 6PM releases next day
 Crew reports crash/debris
@@ -54,6 +56,19 @@ cd frontend
 npm install
 npm run dev
 ```
+
+
+CLOUDFARE DEMO STEPS:
+
+  cd frontend
+  npm.cmd run build
+  cd ..\backend
+  $env:HOST = "127.0.0.1"
+  .venv\Scripts\python serve.py
+  winget install --id Cloudflare.cloudflared
+  cloudflared tunnel --url http://localhost:5000
+
+
 
 Sign in with the **supervisor** or **crew** demo button. If the website can't reach the backend, it shows demo data with a **MOCK DATA** badge, then switches to live data by itself once the backend is running, so the start order doesn't matter. Start the backend only once: a second copy exits with a message saying it's already running. Add `GEMINI_API_KEY` (free tier) or `ANTHROPIC_API_KEY` to `backend/.env` to turn on the AI assistant.
 
