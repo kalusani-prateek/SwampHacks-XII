@@ -2,7 +2,8 @@
 import re
 from zoneinfo import ZoneInfo
 
-from ..models import ROLES
+from ..extensions import db
+from ..models import ROLES, Site
 
 USERNAME = re.compile(r"^[A-Za-z0-9_.-]{3,64}$")
 EMAIL = re.compile(r"^[^@\s]{1,64}@[^@\s]+\.[^@\s]{2,}$")
@@ -23,6 +24,17 @@ def user_problem(username=None, email=None, password=None, role=None, phone=None
     if phone not in (None, "") and not PHONE.match(phone):
         return "Phone must be in international format, e.g. +13055550123."
     return None
+
+
+def site_choice(value, required):
+    """(site id or None, problem or None) for a designated site, which must be an active job site."""
+    site_id = value.strip() if isinstance(value, str) else ""
+    if not site_id:
+        return None, "Choose the site you work at." if required else None
+    site = db.session.get(Site, site_id) if SLUG.match(site_id) else None
+    if not site or not site.active:
+        return None, "Choose one of the active job sites."
+    return site_id, None
 
 
 def valid_timezone(name):

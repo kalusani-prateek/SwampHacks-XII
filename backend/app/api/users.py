@@ -1,11 +1,12 @@
-"""User accounts. Supervisors manage everyone; users can view and edit themselves."""
+"""User accounts. Supervisors manage everyone; users can view and edit themselves
+(changing your own username, email or password needs your current password)."""
 from flask import Blueprint, request
 from flask_login import current_user, login_required
 
 from ..extensions import db
 from ..models import User
-from ..security import error, supervisor_required
-from .validation import user_problem
+from ..security import error, limiter, supervisor_required
+from .validation import site_choice, user_problem
 
 bp = Blueprint("users", __name__)
 
@@ -29,14 +30,15 @@ def create_user():
     password = data.get("password") or ""
     role = data.get("role") or "crew"
     phone = (data.get("phone") or "").strip() or None
-    problem = user_problem(username=username, email=email, password=password, role=role, phone=phone)
+    site_id, site_problem = site_choice(data.get("siteId"), required=False)
+    problem = user_problem(username=username, email=email, password=password, role=role, phone=phone) or site_problem
     if problem:
         return error(problem, 400)
     if User.query.filter_by(username=username).first():
         return error("Username already exists", 409)
     if User.query.filter_by(email=email).first():
         return error("Email already exists", 409)
-    user = User(username=username, email=email, role=role, phone=phone)
+    user = User(username=username, email=email, role=role, phone=phone, site_id=site_id)
     user.set_password(password)
     db.session.add(user)
     db.session.commit()
@@ -77,6 +79,21 @@ def update_user(user_id):
     problem = user_problem(**fields)
     if problem:
         return error(problem, 400)
+    site_id, problem = site_choice(data.get("siteId"), required=False)  # null or "" clears it
+    if problem:
+        return error(problem, 400)
+
+    # Your own sign-in details need your current password (supervisors resetting someone else's don't).
+    changes_credentials = (bool(fields["username"]) and fields["username"] != user.username) \
+        or (bool(fields["email"]) and fields["email"] != user.email) or bool(fields["password"])
+    if user.id == current_user.id and changes_credentials:
+        if not limiter.allow(f"password-check:{user.id}", limit=10):
+            return error("Too many attempts. Wait a minute and try again.", 429)
+        if not data.get("currentPassword"):
+            return error("Enter your current password to change your username, email or password.", 400)
+        if not user.check_password(data["currentPassword"]):
+            return error("Your current password is incorrect.", 403)
+
     if fields["role"] is not None and fields["role"] != user.role:
         if not current_user.is_supervisor:
             return error("Only supervisors can change roles", 403)
@@ -95,6 +112,8 @@ def update_user(user_id):
         user.set_password(fields["password"])
     if fields["phone"] is not None:
         user.phone = fields["phone"] or None
+    if "siteId" in data:
+        user.site_id = site_id
     db.session.commit()
     return {"message": "User updated successfully", "user": user.to_dict()}
 

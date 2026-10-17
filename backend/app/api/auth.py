@@ -5,29 +5,34 @@ from flask_login import current_user, login_required, login_user, logout_user
 from ..extensions import db
 from ..models import User
 from ..security import error, limiter
-from .validation import user_problem
+from .validation import site_choice, user_problem
 
 bp = Blueprint("auth", __name__)
 
 
 @bp.post("/auth/register")
 def register():
-    """Self-registration always creates a crew account; supervisors promote people later."""
+    """Self-registration always creates a crew account (supervisors promote people later) at the
+    designated site the person picks (siteId, required), and signs it in."""
+    if not limiter.allow(f"register:{request.remote_addr}", limit=5):
+        return error("Too many sign-ups from this network. Wait a minute and try again.", 429)
     data = request.get_json(silent=True) or {}
     username = (data.get("username") or "").strip()
     email = (data.get("email") or "").strip().lower()
     password = data.get("password") or ""
-    problem = user_problem(username=username, email=email, password=password)
+    site_id, site_problem = site_choice(data.get("siteId"), required=True)
+    problem = user_problem(username=username, email=email, password=password) or site_problem
     if problem:
         return error(problem, 400)
     if User.query.filter_by(username=username).first():
         return error("Username already exists", 409)
     if User.query.filter_by(email=email).first():
         return error("Email already exists", 409)
-    user = User(username=username, email=email, role="crew")
+    user = User(username=username, email=email, role="crew", site_id=site_id)
     user.set_password(password)
     db.session.add(user)
     db.session.commit()
+    login_user(user, remember=True)
     return {"message": "Account created", "user": user.to_dict()}, 201
 
 

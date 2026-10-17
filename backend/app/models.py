@@ -40,6 +40,10 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     role = db.Column(db.String(20), nullable=False, default="crew")
     phone = db.Column(db.String(32))  # optional, for SMS alerts
+    # The job site this person works at; listed first and highlighted across the app.
+    site_id = db.Column(db.String(80), db.ForeignKey("sites.id", ondelete="SET NULL"))
+
+    site = db.relationship("Site")
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -52,7 +56,8 @@ class User(UserMixin, db.Model):
         return self.role == "supervisor"
 
     def to_dict(self):
-        return {"id": self.id, "username": self.username, "email": self.email, "role": self.role, "phone": self.phone}
+        return {"id": self.id, "username": self.username, "email": self.email, "role": self.role, "phone": self.phone,
+                "siteId": self.site_id, "siteName": self.site.name if self.site else None}
 
 
 @login_manager.user_loader
@@ -189,8 +194,13 @@ class HazardReport(db.Model):
 
     user = db.relationship("User")
 
-    def to_dict(self):
-        return {
+    def editable_by(self, user):
+        """The person who reported it, or any supervisor, may edit or delete a report."""
+        return user.is_supervisor or (self.user_id is not None and self.user_id == user.id)
+
+    def to_dict(self, viewer=None):
+        """viewer: the signed-in user, which adds canEdit (see editable_by)."""
+        data = {
             "id": self.id,
             "siteId": self.site_id,
             "type": self.type,
@@ -202,6 +212,9 @@ class HazardReport(db.Model):
             "createdAt": iso(self.created_at),
             "status": self.status,
         }
+        if viewer is not None:
+            data["canEdit"] = self.editable_by(viewer)
+        return data
 
 
 class Briefing(db.Model):

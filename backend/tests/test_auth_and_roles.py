@@ -15,12 +15,28 @@ def test_bad_password_and_signed_out_requests_are_rejected(client):
 
 
 def test_register_creates_crew_and_rejects_duplicates(client):
-    body = {"username": "newhand", "email": "newhand@example.com", "password": "longenough"}
+    body = {"username": "newhand", "email": "newhand@example.com", "password": "longenough",
+            "siteId": "turkey-point"}
     response = client.post("/api/auth/register", json=body)
     assert response.status_code == 201
     assert response.get_json()["user"]["role"] == "crew"
+    assert client.get("/api/auth/me").get_json()["user"]["username"] == "newhand"  # signed in straight away
     assert client.post("/api/auth/register", json=body).status_code == 409
     assert client.post("/api/auth/register", json={**body, "username": "x"}).status_code == 400
+
+
+def test_register_never_creates_a_supervisor(client):
+    body = {"username": "sneaky", "email": "sneaky@example.com", "password": "longenough", "role": "supervisor",
+            "siteId": "turkey-point"}
+    assert client.post("/api/auth/register", json=body).get_json()["user"]["role"] == "crew"
+
+
+def test_register_is_rate_limited(client):
+    for i in range(5):
+        body = {"username": f"crew{i}", "email": f"crew{i}@example.com", "password": "longenough", "siteId": "turkey-point"}
+        assert client.post("/api/auth/register", json=body).status_code == 201
+    body = {"username": "crew5", "email": "crew5@example.com", "password": "longenough", "siteId": "turkey-point"}
+    assert client.post("/api/auth/register", json=body).status_code == 429
 
 
 def test_logout_ends_the_session(crew):

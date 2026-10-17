@@ -3,7 +3,7 @@ import csv
 import logging
 from pathlib import Path
 
-from sqlalchemy import event
+from sqlalchemy import event, inspect, text
 
 from .extensions import db
 from .models import Setting, Site, User
@@ -11,6 +11,7 @@ from .settings_store import DEFAULTS
 
 log = logging.getLogger(__name__)
 SITES_CSV = Path(__file__).resolve().parent.parent / "data" / "sites.csv"
+DEMO_SITE = "turkey-point"  # the brief's scenario: the demo accounts work here
 
 
 def enable_sqlite_wal(engine):
@@ -57,19 +58,32 @@ def seed_settings():
 
 
 def seed_demo_users(password):
-    """Two demo accounts, one per role. Only when SEED_DEMO_USERS is on (development)."""
+    """Two demo accounts, one per role, both at Turkey Point. Only when SEED_DEMO_USERS is on (development)."""
+    site_id = DEMO_SITE if db.session.get(Site, DEMO_SITE) else None
     if User.query.first():
+        # Databases from before designated sites: give the demo accounts one.
+        for user in User.query.filter(User.username.in_(["supervisor", "crew"]), User.site_id.is_(None)):
+            user.site_id = site_id
         return
     for username, role in (("supervisor", "supervisor"), ("crew", "crew")):
-        user = User(username=username, email=f"{username}@planit.dev", role=role)
+        user = User(username=username, email=f"{username}@planit.dev", role=role, site_id=site_id)
         user.set_password(password)
         db.session.add(user)
     log.info("Seeded demo accounts 'supervisor' and 'crew'")
 
 
+def upgrade_schema():
+    """Add columns that newer code expects to databases created before them (create_all only adds tables)."""
+    if "site_id" not in {column["name"] for column in inspect(db.engine).get_columns("users")}:
+        with db.engine.begin() as connection:
+            connection.execute(text("ALTER TABLE users ADD COLUMN site_id VARCHAR(80) REFERENCES sites(id) ON DELETE SET NULL"))
+        log.info("Added users.site_id (designated site) to the existing database")
+
+
 def init_db(app):
     enable_sqlite_wal(db.engine)
     db.create_all()
+    upgrade_schema()
     seed_sites()
     seed_settings()
     if app.config["SEED_DEMO_USERS"]:

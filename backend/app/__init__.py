@@ -1,5 +1,6 @@
 """PlanIT Control REST API (Flask). Contract: docs/API.md."""
 import logging
+import os
 
 from flask import Flask, jsonify, request
 
@@ -49,7 +50,7 @@ def create_app(config_class=Config, with_jobs=True):
         from .jobs import start_jobs
         start_jobs(app)
 
-    if app.config["APP_ENV"] == "production" and "SECRET_KEY" not in __import__("os").environ:
+    if app.config["APP_ENV"] == "production" and not os.environ.get("SECRET_KEY"):  # unset or empty (e.g. "SECRET_KEY=")
         app.logger.warning("SECRET_KEY is not set: sessions will reset on every restart")
     return app
 

@@ -3,7 +3,7 @@ from flask import Blueprint, current_app, request
 from flask_login import current_user, login_required
 
 from ..extensions import db
-from ..models import Site
+from ..models import Site, User
 from ..security import error, supervisor_required
 from ..services import ingest
 from .validation import SLUG, number, slugify, valid_timezone
@@ -32,6 +32,13 @@ def list_sites():
         return error("Supervisor privileges required", 403)
     query = Site.query if include_inactive else Site.query.filter_by(active=True)
     return {"sites": [s.to_dict() for s in query.order_by(Site.name)]}
+
+
+@bp.get("/sites/options")
+def site_options():
+    """Public: active site names for the sign-up form's "your site" choice (no hazard data)."""
+    sites = Site.query.filter_by(active=True).order_by(Site.name)
+    return {"sites": [{"id": s.id, "name": s.name, "state": s.state} for s in sites]}
 
 
 @bp.get("/sites/<site_id>")
@@ -131,6 +138,7 @@ def delete_site(site_id):
     site = find_site(site_id, include_inactive=True)
     if not site:
         return error("Site not found", 404)
+    User.query.filter_by(site_id=site.id).update({"site_id": None})  # people there pick a new site
     db.session.delete(site)
     db.session.commit()
     return {"message": "Site deleted"}
