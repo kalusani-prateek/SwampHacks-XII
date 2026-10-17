@@ -1,8 +1,7 @@
 // Route table. All paths come from src/routes.js. There are two roles:
-//   crew        -> sites, alerts, hazard reporting, briefings, AI assistant
-//   supervisor  -> everything crew can do, plus the PlanIt Dashboard and the
-//                  Manage panel (/manage/<tab>). Supervisors hold all
-//                  management privileges; there is no separate admin.
+//   crew        -> PlanIt Dashboard, sites, alerts, hazard reporting, briefings, AI assistant
+//   supervisor  -> everything crew can do, plus the Manage panel (/manage/<tab>).
+//                  Supervisors hold all management privileges; there is no separate admin.
 import { Navigate, Route, Routes } from 'react-router-dom';
 import Layout from './components/layout/Layout.jsx';
 import ProtectedRoute from './components/layout/ProtectedRoute.jsx';
@@ -38,6 +37,7 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<Layout />}>
           <Route path={PATHS.home} element={<HomeRedirect />} />
+          <Route path={PATHS.dashboard} element={<DashboardPage />} />
           <Route path={PATHS.sites} element={<SitesPage />} />
           <Route path={PATHS.siteDetail} element={<SiteDetailPage />} />
           <Route path={PATHS.alerts} element={<AlertsPage />} />
@@ -46,9 +46,8 @@ export default function App() {
           <Route path={PATHS.briefings} element={<BriefingsPage />} />
           <Route path={PATHS.account} element={<AccountPage />} />
 
-          {/* Supervisor only: PlanIt Dashboard + Manage panel (/manage -> /manage/overview) */}
+          {/* Supervisor only: the Manage panel (/manage -> /manage/overview) */}
           <Route element={<ProtectedRoute roles={[ROLES.SUPERVISOR]} />}>
-            <Route path={PATHS.dashboard} element={<DashboardPage />} />
             <Route path={PATHS.manage} element={<Navigate to={urls.manage()} replace />} />
             <Route path={PATHS.manageTab} element={<ManagePage />} />
           </Route>

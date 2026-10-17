@@ -24,8 +24,8 @@ For production, `npm run build` writes `dist/`, which the Flask backend serves o
 
 There are two roles and no admin. Supervisors hold every management privilege.
 
-- **Crew**: sites, alerts, hazard reporting, briefings and the AI assistant.
-- **Supervisor**: everything crew can do, plus the PlanIt Dashboard and the **Manage** panel (`/manage/...`): users and roles, sites, alert rules, hazard-report moderation, briefing settings and the notification outbox.
+- **Crew**: the PlanIt Dashboard, sites, alerts, hazard reporting, briefings and the AI assistant.
+- **Supervisor**: everything crew can do, plus the **Manage** panel (`/manage/...`): users and roles, sites, alert rules, hazard-report moderation, briefing settings and the notification outbox.
 
 ## Live features
 
@@ -76,7 +76,7 @@ src/
 │   └── reports/    ReportList
 └── pages/
     ├── LoginPage, RegisterPage, AccountPage, SitesPage, SiteDetailPage, AlertsPage,
-    ├── HazardReportsPage, ReportHazardPage, BriefingsPage, DashboardPage (supervisor), NotFoundPage
+    ├── HazardReportsPage, ReportHazardPage, BriefingsPage, DashboardPage, NotFoundPage
     └── manage/     ManagePage (/manage/:tab, supervisor) + tabs/
                     (Overview, Users, Sites, Alert rules, Hazard reports, Briefings)
 tests/              url.test.js, hazard.test.js
@@ -91,7 +91,7 @@ tests/              url.test.js, hazard.test.js
 | Flood warnings for river sites | `pages/AlertsPage.jsx` | `services/rivers.py`, `services/alert_engine.py` |
 | 6 PM next-day briefing | `pages/BriefingsPage.jsx`, `manage/tabs/BriefingsTab.jsx` | `services/briefings.py`, `services/notify.py` |
 | Crew hazard reporting (photo + map pin) | `pages/ReportHazardPage.jsx`, `components/map/LocationPicker.jsx` | `api/reports.py` |
-| Supervisor PlanIt Dashboard | `pages/DashboardPage.jsx` | `api/sites.py` |
+| PlanIt Dashboard | `pages/DashboardPage.jsx` | `api/sites.py` |
 | Hazard index (0-10) | `utils/hazard.js`, `components/common/HazardBadge.jsx` | `services/hazards.py` + `services/hazard_model.py` (safety rules + ML model) |
 | Supervisor management (admin privileges) | `pages/manage/` | `api/users.py`, `api/settings.py` |
 | AI assistant | `components/chat/`, `hooks/useChat.js`, `api/chat.js` | `services/assistant.py` |
