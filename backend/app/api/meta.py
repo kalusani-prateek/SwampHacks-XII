@@ -2,6 +2,7 @@
 from flask import Blueprint, current_app
 
 from ..models import User
+from ..services.assistant import provider
 from ..services.hazards import SCORING
 
 bp = Blueprint("meta", __name__)
@@ -18,7 +19,7 @@ def meta():
         "api": "planit-control",
         "demoTools": cfg["DEMO_TOOLS"],
         "demoAccounts": demo_accounts,
-        "assistant": bool(cfg["ANTHROPIC_API_KEY"]),
+        "assistant": provider(cfg) is not None,
         "lightningSource": cfg["LIGHTNING_SOURCE"],
         "scoring": SCORING,
     }

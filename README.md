@@ -32,7 +32,7 @@ Backend:
 
 ## PlanIT Control
 
-Real-time hazard monitoring for utility field crews at 58 real power-plant job sites (from EIA-860M). It combines live weather, NWS warnings, river gauges, satellite fire detections, wildlife sightings and NOAA GOES satellite lightning into one 0-10 hazard index per site. It also raises stop-work alerts (10-mile / 30-minute lightning rule, flood, heat, wind), sends 6 PM next-day briefings, takes crew hazard reports with photos, and answers questions through a Claude-powered assistant.
+Real-time hazard monitoring for utility field crews at 58 real power-plant job sites (from EIA-860M). It combines live weather, NWS warnings, river gauges, satellite fire detections, wildlife sightings and NOAA GOES satellite lightning into one 0-10 hazard index per site. It also raises stop-work alerts (10-mile / 30-minute lightning rule, flood, heat, wind), sends 6 PM next-day briefings, takes crew hazard reports with photos, and answers questions through an AI assistant (Gemini or Claude).
 
 ```
 backend/     Flask REST API, background data jobs, tests   (backend/README.md)
@@ -55,13 +55,13 @@ npm install
 npm run dev
 ```
 
-Sign in with the **supervisor** or **crew** demo button. If the website can't reach the backend, it shows demo data with a **MOCK DATA** badge, then switches to live data by itself once the backend is running, so the start order doesn't matter. Start the backend only once: a second copy exits with a message saying it's already running. Add `ANTHROPIC_API_KEY` to `backend/.env` to turn on the AI assistant.
+Sign in with the **supervisor** or **crew** demo button. If the website can't reach the backend, it shows demo data with a **MOCK DATA** badge, then switches to live data by itself once the backend is running, so the start order doesn't matter. Start the backend only once: a second copy exits with a message saying it's already running. Add `GEMINI_API_KEY` (free tier) or `ANTHROPIC_API_KEY` to `backend/.env` to turn on the AI assistant.
 
 On Windows PowerShell, use `npm.cmd` if `npm` is blocked by the script policy.
 
 ## Tests
 
 ```bash
-cd backend && .venv\Scripts\python -m pytest     # 60 API, scoring, alert and assistant tests
+cd backend && .venv\Scripts\python -m pytest     # 72 API, scoring, alert, assistant and startup tests
 cd frontend && npm test                          # URL, hazard-band and demo-assistant tests
 ```

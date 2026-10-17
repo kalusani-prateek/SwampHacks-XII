@@ -27,7 +27,7 @@ One process serves everything: the REST API, the background data jobs and the bu
    | `APP_ENV=production` | yes | turns off demo accounts and demo tools, sets secure cookies |
    | `SECRET_KEY` | yes | long random string: `python -c "import secrets; print(secrets.token_hex(32))"` |
    | `CONTACT_EMAIL` | recommended | sent in the User-Agent to the National Weather Service API |
-   | `ANTHROPIC_API_KEY` | for the assistant | server only; never put it in a `VITE_` variable |
+   | `GEMINI_API_KEY` or `ANTHROPIC_API_KEY` | for the assistant | server only; never put it in a `VITE_` variable |
    | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | for email | without them, emails are only recorded in the outbox |
    | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM` | for SMS | users add phone numbers in E.164 format (`+13055550123`) |
    | `DATABASE_URL` | optional | defaults to SQLite at `backend/instance/planit.db` |

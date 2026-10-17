@@ -82,7 +82,11 @@ class Config:
     CONTACT_EMAIL = env("CONTACT_EMAIL")
     OPEN_METEO_API_KEY = env("OPEN_METEO_API_KEY")  # optional, for Open-Meteo's commercial API
 
-    # AI assistant (POST /api/chat). The key stays on the server.
+    # AI assistant (POST /api/chat): Gemini or Claude, whichever key is set. Keys stay on the server.
+    # With both keys, Claude answers unless ASSISTANT_PROVIDER=gemini.
+    ASSISTANT_PROVIDER = env("ASSISTANT_PROVIDER", "auto")  # auto | claude | gemini
+    GEMINI_API_KEY = env("GEMINI_API_KEY")
+    GEMINI_MODEL = env("GEMINI_MODEL", "gemini-3.8-flash")
     ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY")
     CLAUDE_MODEL = env("CLAUDE_MODEL", "claude-opus-5-5")
     CHAT_RATE_LIMIT_PER_MINUTE = int(env("CHAT_RATE_LIMIT_PER_MINUTE", "20"))
@@ -111,6 +115,8 @@ class TestConfig(Config):
     LIGHTNING_SOURCE = "off"
     DEMO_TOOLS = True
     SEED_DEMO_USERS = True
+    ASSISTANT_PROVIDER = "auto"
+    GEMINI_API_KEY = ""
     ANTHROPIC_API_KEY = ""
     SMTP_HOST = ""
     TWILIO_ACCOUNT_SID = ""

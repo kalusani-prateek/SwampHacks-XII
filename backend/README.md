@@ -1,6 +1,6 @@
 # PlanIT Control backend
 
-Flask REST API with background jobs that pull live hazard data for 58 real power-plant job sites, score them, raise alerts, send 6 PM next-day briefings, and answer questions through a Claude-powered assistant. The full API contract is in [`../docs/API.md`](../docs/API.md).
+Flask REST API with background jobs that pull live hazard data for 58 real power-plant job sites, score them, raise alerts, send 6 PM next-day briefings, and answer questions through an AI assistant (Gemini or Claude). The full API contract is in [`../docs/API.md`](../docs/API.md).
 
 ## Setup
 
@@ -33,7 +33,7 @@ Settings come from environment variables or `backend/.env`; [`.env.example`](.en
 | Variable | Purpose |
 |---|---|
 | `SECRET_KEY` | session signing key (required in production) |
-| `ANTHROPIC_API_KEY` | turns on the AI assistant (`POST /api/chat`) |
+| `GEMINI_API_KEY` or `ANTHROPIC_API_KEY` | turns on the AI assistant (`POST /api/chat`) with Gemini or Claude; with both set, `ASSISTANT_PROVIDER` picks |
 | `CONTACT_EMAIL` | sent in the User-Agent to public data APIs (NWS asks for one) |
 | `SMTP_*`, `TWILIO_*` | real email / SMS; without them messages are only recorded in the outbox |
 | `LIGHTNING_SOURCE` | `glm` (NOAA GOES satellites, ~1 MB/min) or `off` |

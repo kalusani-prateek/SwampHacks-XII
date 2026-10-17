@@ -7,7 +7,7 @@ cd backend && .venv\Scripts\python run.py      # live data; first refresh takes 
 cd frontend && npm run dev                     # http://localhost:5173 (or `npm run build` once and use :5000)
 ```
 
-Optional: set `ANTHROPIC_API_KEY` in `backend/.env` before starting, so the assistant gives real answers.
+Optional: set `GEMINI_API_KEY` (free tier) or `ANTHROPIC_API_KEY` in `backend/.env` before starting, so the assistant gives real answers.
 
 ## 1. The problem (30 s)
 
@@ -40,7 +40,7 @@ The brief's 6:45 AM scene: heat, storms, mud and a gator, all knowable ahead of 
 ## 6. Briefings and the assistant (45 s)
 
 1. **Briefings**: tomorrow's briefing for every site. These are sent automatically at 6 PM in each site's own time zone; as supervisor, **Manage › Briefings › Send briefings now** sends them immediately.
-2. Open **Ask PlanIT AI** on a site page and ask "Is it safe to work here today?" Claude answers from that site's live data and never overrides a stop-work. Without an API key, the chat says the key is missing.
+2. Open **Ask PlanIT AI** on a site page and ask "Is it safe to work here today?" The AI (Gemini or Claude) answers from that site's live data and never overrides a stop-work. Without an API key, the chat says the key is missing.
 
 ## Closing points
 

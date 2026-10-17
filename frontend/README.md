@@ -31,7 +31,7 @@ There are two roles and no admin. Supervisors hold every management privilege.
 
 - **Alerts:** new alerts arrive over Server-Sent Events while the tab is visible, with 15-30 s polling as a fallback. A red banner shows stop-work sites on every page, and **🔔 Enable alert notifications** in the navbar turns on browser notifications.
 - **Lightning countdown:** each site page counts down the 30-minute all-clear from the latest strike within 10 miles (NOAA GOES satellite data). Supervisors on a development server get **Simulate strike (demo)**.
-- **AI assistant:** the floating **Ask PlanIT AI** button opens a chat that knows the site on screen. The browser posts to `POST /api/chat`; the backend calls Claude with live site data ([API § 9](../docs/API.md#9-ai-assistant)). With no backend, a keyword-matching stand-in (`mocks/chatbot.js`, labelled **DEMO**) answers.
+- **AI assistant:** the floating **Ask PlanIT AI** button opens a chat that knows the site on screen. The browser posts to `POST /api/chat`; the backend asks Gemini or Claude, with live site data ([API § 9](../docs/API.md#9-ai-assistant)). With no backend, a keyword-matching stand-in (`mocks/chatbot.js`, labelled **DEMO**) answers.
 - **Offline:** production builds register a service worker (`public/sw.js`) that keeps the app and the last data each page loaded, so crews at remote sites can still open pages without signal. Signing out clears the saved data.
 
 ## API calls

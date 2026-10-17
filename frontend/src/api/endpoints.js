@@ -63,6 +63,6 @@ export const ENDPOINTS = {
 
   stats: '/stats', //                                        GET    (supervisor) Manage › Overview numbers
   notifications: '/notifications', //                        GET    (supervisor) recent emails/texts (outbox)
-  chat: '/chat', //                                          POST   AI assistant reply (backend calls Claude)
+  chat: '/chat', //                                          POST   AI assistant reply (backend calls Gemini or Claude)
   meta: '/meta', //                                          GET    public server info and feature flags
 };
