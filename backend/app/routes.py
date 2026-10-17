@@ -18,6 +18,7 @@ def admin_required():
 @auth_bp.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
+    print("hello")
     if not data:
         return make_response(jsonify({'message': 'No input data provided'}), 400)
 
