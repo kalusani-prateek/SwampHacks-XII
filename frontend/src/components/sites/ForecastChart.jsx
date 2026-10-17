@@ -1,4 +1,4 @@
-// 7-day ML hazard-index forecast as a simple bar chart (pure Tailwind, no
+// 7-day hazard-index forecast as a simple bar chart (pure Tailwind, no
 // chart library). Bars are colored by hazard band.
 import { getHazardLevel } from '../../utils/hazard.js';
 import { weekdayLabel } from '../../utils/time.js';

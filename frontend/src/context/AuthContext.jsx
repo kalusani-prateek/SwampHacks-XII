@@ -1,7 +1,9 @@
 // Auth state shared across the app: the signed-in user plus login/logout.
 import { createContext, useContext, useEffect, useState } from 'react';
 import * as authApi from '../api/auth.js';
+import { updateUser } from '../api/users.js';
 import { USE_MOCKS } from '../api/client.js';
+import { clearOfflineData } from '../offline.js';
 
 const AuthContext = createContext(null);
 const MOCK_SESSION_KEY = 'planit-mock-user';
@@ -19,7 +21,11 @@ export function AuthProvider({ children }) {
       // Mock mode: there is no session cookie, so remember the user in sessionStorage.
       try {
         const saved = sessionStorage.getItem(MOCK_SESSION_KEY);
-        if (saved) setUser(JSON.parse(saved));
+        if (saved) {
+          const restored = JSON.parse(saved);
+          authApi.restoreMockAccount(restored); // an account made in demo mode survives the reload
+          setUser(restored);
+        }
       } catch {
         /* storage unavailable: start signed out */
       }
@@ -34,10 +40,8 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false));
   }, []);
 
-  async function login(username, password) {
-    const response = await authApi.login(username, password);
-    // Until the backend returns `user` from /login, fall back to /auth/me.
-    const signedIn = response.user ?? (await authApi.getCurrentUser()).user;
+  /** Make `signedIn` the current user (and remember it in mock mode, which has no session cookie). */
+  function startSession(signedIn) {
     setUser(signedIn);
     setSignedOut(false);
     if (USE_MOCKS) {
@@ -50,8 +54,30 @@ export function AuthProvider({ children }) {
     return signedIn;
   }
 
+  async function login(username, password) {
+    const response = await authApi.login(username, password);
+    // The backend returns the user; /auth/me is only a fallback.
+    return startSession(response.user ?? (await authApi.getCurrentUser()).user);
+  }
+
+  /** Create a crew account ({ username, email, password, siteId }); the backend signs it in straight away. */
+  async function register(details) {
+    const response = await authApi.register(details);
+    return startSession(response.user);
+  }
+
+  /**
+   * Change your own account ({ username?, email?, password?, siteId?, currentPassword? }).
+   * Every page sees the result at once, e.g. your designated site moves to the top.
+   */
+  async function updateAccount(changes) {
+    const response = await updateUser(user.id, changes); // REST API PLACEHOLDER: PUT /api/users/:id
+    return startSession({ ...user, ...response.user });
+  }
+
   async function logout() {
     await authApi.logout();
+    clearOfflineData(); // the next person on a shared device shouldn't see this user's saved data
     // Both updates render together, so the redirect sees signedOut = true.
     setUser(null);
     setSignedOut(true);
@@ -64,7 +90,9 @@ export function AuthProvider({ children }) {
     }
   }
 
-  return <AuthContext.Provider value={{ user, loading, signedOut, login, logout }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, loading, signedOut, login, register, updateAccount, logout }}>{children}</AuthContext.Provider>
+  );
 }
 
 /** Access the auth context from any component. */

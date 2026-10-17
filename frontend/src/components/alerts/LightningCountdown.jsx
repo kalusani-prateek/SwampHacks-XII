@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import { getLightningStatus, simulateLightningStrike } from '../../api/sites.js';
 import { USE_MOCKS } from '../../api/client.js';
 import { usePolling } from '../../hooks/usePolling.js';
+import { useMeta } from '../../hooks/useMeta.js';
+import { useAuth } from '../../context/AuthContext.jsx';
+import { ROLES } from '../../utils/roles.js';
 import { formatCountdown } from '../../utils/time.js';
 
 const STATUS_POLL_MS = 15_000;
@@ -11,6 +14,10 @@ const STATUS_POLL_MS = 15_000;
 export default function LightningCountdown({ siteId, allClearMinutes = 30 }) {
   const [status, setStatus] = useState({ lastStrikeAt: null, distanceMiles: null });
   const [now, setNow] = useState(Date.now());
+  const { user } = useAuth();
+  const meta = useMeta();
+  // Demo button: always in mock mode; with the real API only for supervisors when the server allows it.
+  const canSimulate = USE_MOCKS || (meta?.demoTools && user?.role === ROLES.SUPERVISOR);
 
   // REST API PLACEHOLDER: GET /api/sites/:id/lightning (polled every 15 s)
   const refresh = () => getLightningStatus(siteId).then(setStatus).catch(() => {});
@@ -46,16 +53,17 @@ export default function LightningCountdown({ siteId, allClearMinutes = 30 }) {
         </>
       )}
 
-      {/* Demo only: lets you watch the countdown restart without a live feed */}
-      {USE_MOCKS && (
+      {/* Demo only: lets you watch the countdown restart without waiting for a real storm */}
+      {canSimulate && (
         <button
           className="btn-secondary mt-3 text-xs"
-          onClick={() => {
-            simulateLightningStrike(siteId);
+          onClick={async () => {
+            // REST API PLACEHOLDER: POST /api/sites/:id/lightning/simulate
+            await simulateLightningStrike(siteId).catch(() => {});
             refresh();
           }}
         >
-          Simulate strike (mock)
+          Simulate strike (demo)
         </button>
       )}
     </div>

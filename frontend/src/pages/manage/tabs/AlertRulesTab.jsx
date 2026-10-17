@@ -12,7 +12,7 @@ const FIELDS = [
   { key: 'floodRainInches', label: 'Overnight rain for flood warning', unit: 'inches', help: 'Applies to sites on rivers (e.g. the Mississippi).' },
   { key: 'heatIndexF', label: 'Extreme heat advisory', unit: '°F heat index', help: 'Triggers water-rest-shade guidance.' },
   { key: 'windMph', label: 'High-wind alert', unit: 'mph', help: 'Crane / aerial lift operating limit.' },
-  { key: 'hazardIndexAlert', label: 'Hazard index alert level', unit: '0-10', help: 'Alert supervisors when a site\'s ML score crosses this.' },
+  { key: 'hazardIndexAlert', label: 'Hazard index alert level', unit: '0-10', help: 'Alert supervisors when a site\'s hazard index crosses this.' },
 ];
 
 export default function AlertRulesTab() {

@@ -1,9 +1,7 @@
 // =============================================================================
 // REST API endpoint map - single source of truth for every backend route the
 // frontend uses. Paths are relative to API_BASE_URL ("/api").
-// Full request/response contracts: docs/API_PLAN.md
-//   [EXISTS]       = already implemented in backend/app/routes.py
-//   [PLANNED]      = to be implemented
+// Full request/response contracts: docs/API.md (implemented in backend/app/api/)
 //   (supervisor)   = requires the supervisor role; everything else needs any signed-in user
 //
 // Conventions (so the future backend stays predictable):
@@ -19,49 +17,53 @@ import { segment } from '../utils/url.js';
 
 export const ENDPOINTS = {
   auth: {
-    login: '/auth/login', //       POST  [EXISTS]
-    logout: '/auth/logout', //     POST  [EXISTS]
-    register: '/auth/register', // POST  [EXISTS] new accounts are crew
-    me: '/auth/me', //             GET   [PLANNED] current session user
+    login: '/auth/login', //       POST
+    logout: '/auth/logout', //     POST
+    register: '/auth/register', // POST  new accounts are crew
+    me: '/auth/me', //             GET   current session user
   },
 
   users: {
-    list: '/users', //                                       GET    [PLANNED] (supervisor)
-    create: '/users', //                                     POST   [PLANNED] (supervisor)
-    detail: (id) => `/users/${segment(id)}`, //              GET / PUT / DELETE [EXISTS] self or supervisor; `role` changes supervisor-only
+    list: '/users', //                                       GET    (supervisor)
+    create: '/users', //                                     POST   (supervisor)
+    detail: (id) => `/users/${segment(id)}`, //              GET / PUT / DELETE self or supervisor; `role` changes supervisor-only
   },
 
   sites: {
-    list: '/sites', //                                       GET    [PLANNED] ?includeInactive=true (supervisor)
-    create: '/sites', //                                     POST   [PLANNED] (supervisor)
-    detail: (id) => `/sites/${segment(id)}`, //              GET    [PLANNED] · PUT / DELETE (supervisor)
-    forecast: (id) => `/sites/${segment(id)}/forecast`, //   GET    [PLANNED] 7-day ML hazard forecast
-    lightning: (id) => `/sites/${segment(id)}/lightning`, // GET    [PLANNED] last strike within 10 mi
+    list: '/sites', //                                       GET    ?includeInactive=true (supervisor)
+    options: '/sites/options', //                            GET    public: { id, name, state } for the sign-up form
+    create: '/sites', //                                     POST   (supervisor)
+    detail: (id) => `/sites/${segment(id)}`, //              GET    · PUT / DELETE (supervisor)
+    forecast: (id) => `/sites/${segment(id)}/forecast`, //   GET    7-day hazard forecast
+    lightning: (id) => `/sites/${segment(id)}/lightning`, // GET    last strike within 10 mi
+    simulateStrike: (id) => `/sites/${segment(id)}/lightning/simulate`, // POST (supervisor, demo tools only)
   },
 
   alerts: {
-    list: '/alerts', //                                      GET    [PLANNED] ?active=true&siteId=
-    acknowledge: (id) => `/alerts/${segment(id)}/ack`, //    POST   [PLANNED]
-    stream: '/alerts/stream', //                             GET    [PLANNED] Server-Sent Events push channel
+    list: '/alerts', //                                      GET    ?active=true&siteId=
+    acknowledge: (id) => `/alerts/${segment(id)}/ack`, //    POST
+    stream: '/alerts/stream', //                             GET    Server-Sent Events push channel
   },
 
   reports: {
-    list: '/reports', //                                     GET    [PLANNED] ?siteId=&status=
-    create: '/reports', //                                   POST   [PLANNED] multipart (photo)
-    detail: (id) => `/reports/${segment(id)}`, //            PATCH  [PLANNED] (supervisor) moderation
+    list: '/reports', //                                     GET    ?siteId=&type=&status=&days=&q=&mine=true
+    create: '/reports', //                                   POST   multipart (photo)
+    detail: (id) => `/reports/${segment(id)}`, //            PATCH / DELETE  reporter or supervisor (status: supervisor)
   },
 
   briefings: {
-    list: '/briefings', //                                   GET    [PLANNED] ?date=YYYY-MM-DD
-    create: '/briefings', //                                 POST   [PLANNED] (supervisor) send briefings now
-    detail: (siteId) => `/briefings/${segment(siteId)}`, //  GET    [PLANNED] next-day briefing for a site
+    list: '/briefings', //                                   GET    ?date=YYYY-MM-DD
+    create: '/briefings', //                                 POST   (supervisor) send briefings now
+    detail: (siteId) => `/briefings/${segment(siteId)}`, //  GET    next-day briefing for a site
   },
 
   settings: {
-    alertRules: '/settings/alert-rules', //                  GET / PUT [PLANNED] (supervisor for PUT)
-    briefings: '/settings/briefings', //                     GET / PUT [PLANNED] (supervisor)
+    alertRules: '/settings/alert-rules', //                  GET / PUT (supervisor for PUT)
+    briefings: '/settings/briefings', //                     GET / PUT (supervisor)
   },
 
-  stats: '/stats', //                                        GET    [PLANNED] (supervisor) Manage › Overview numbers
-  chat: '/chat', //                                          POST   [PLANNED] AI assistant reply (backend calls Claude)
+  stats: '/stats', //                                        GET    (supervisor) Manage › Overview numbers
+  notifications: '/notifications', //                        GET    (supervisor) recent emails/texts (outbox)
+  chat: '/chat', //                                          POST   AI assistant reply (backend calls Gemini or Claude)
+  meta: '/meta', //                                          GET    public server info and feature flags
 };

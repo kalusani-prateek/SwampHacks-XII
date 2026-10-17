@@ -72,14 +72,19 @@ export default function SiteDetailPage() {
         {/* Left column: score + lightning + breakdown */}
         <div className="space-y-6">
           <div className="card">
-            <p className="label">ML hazard index</p>
+            <p className="label">Hazard index</p>
             <HazardBadge score={site.hazardIndex} showDecision size="lg" />
             <ul className="mt-3 space-y-1 text-sm text-slate-700">
               {site.drivers.map((d) => (
                 <li key={d}>• {d}</li>
               ))}
             </ul>
-            <p className="mt-3 text-xs text-slate-400">Updated {timeAgo(site.updatedAt)}</p>
+            <p className="mt-3 text-xs text-slate-400">
+              {site.updatedAt ? `Updated ${timeAgo(site.updatedAt)}` : 'Waiting for the first data refresh'}
+              {/* Which method produced the score (ML model plus safety rules, or rules alone if no model is fitted) */}
+              {site.scoring?.label && <span className="block">{site.scoring.label}</span>}
+              {site.eiaPlantId && <span className="block">EIA plant ID {site.eiaPlantId}</span>}
+            </p>
           </div>
 
           <LightningCountdown siteId={site.id} />
@@ -116,7 +121,12 @@ export default function SiteDetailPage() {
           </div>
 
           <div className="card">
-            <h2 className="mb-1 font-semibold text-navy-800">Crew hazard reports</h2>
+            <div className="mb-1 flex items-baseline justify-between gap-2">
+              <h2 className="font-semibold text-navy-800">Crew hazard reports</h2>
+              <Link to={urls.reports({ site: site.id, days: 'all' })} className="text-sm font-medium text-brand hover:underline">
+                Search all reports
+              </Link>
+            </div>
             <ReportList reports={reports} />
           </div>
         </div>

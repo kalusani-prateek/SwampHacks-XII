@@ -1,8 +1,8 @@
 // =============================================================================
 // MOCK DATA GENERATORS
 // Stand-ins for backend logic so the UI can be built before the API exists:
-//   buildSiteHazards -> backend data ingestion + ML hazard index (GET /api/sites)
-//   buildForecast    -> ML 7-day forecast              (GET /api/sites/:id/forecast)
+//   buildSiteHazards -> backend data ingestion + hazard scoring (GET /api/sites)
+//   buildForecast    -> 7-day forecast                 (GET /api/sites/:id/forecast)
 //   buildBriefing    -> 6 PM next-day briefing job     (GET /api/briefings)
 // A seeded random generator keeps the numbers the same between reloads.
 // =============================================================================
@@ -38,7 +38,7 @@ const PROFILE_BASELINES = {
 /**
  * Combine per-hazard scores into one 0-10 index. Weighted toward the worst
  * hazard: one extreme hazard should dominate the go/no-go call.
- * (Placeholder for the ML model's output.)
+ * (Stand-in for the backend scoring in services/hazards.py.)
  */
 export function combineHazards(hazards) {
   const scores = Object.values(hazards).sort((a, b) => b - a);
