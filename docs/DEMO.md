@@ -33,7 +33,7 @@ The brief's 6:45 AM scene: heat, storms, mud and a gator, all knowable ahead of 
 
 ## 5. Crew hazard report (45 s)
 
-1. Sign out and sign in as **crew**. The dashboard and Manage disappear, since crew have no management privileges.
+1. Sign out and sign in as **crew**. The dashboard stays (everyone can see it), but Manage disappears, since crew have no management privileges.
 2. **Report Hazard**: choose Wildlife, tap the map to pin it, add a photo, then **Send report**.
 3. The report appears on the site with its photo, and the site's wildlife score rises.
 

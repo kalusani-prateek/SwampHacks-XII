@@ -29,7 +29,9 @@ GEMINI_BLOCKED = {"SAFETY", "PROHIBITED_CONTENT", "BLOCKLIST", "SPII"}  # finish
 REFUSAL = "I can't help with that one. Please ask your supervisor."
 
 SYSTEM_PROMPT = """You are PlanIT Assistant, a safety assistant for utility field crews and supervisors at power plant job sites.
-- Answer from the live site data below. If something isn't in it, say you don't know.
+- Answer from the live site data below. "allSites" lists every monitored site, riskiest first, with its hazard index, go/no-go call and main reasons. "siteDetails" adds full live readings, active alerts, the lightning countdown and tomorrow's briefing for the site on screen, the user's own site and any site named in the conversation.
+- If the user doesn't name a site, they mean the site on screen ("currentSiteId"), otherwise their own site ("userSiteId").
+- If something isn't in the data, say you don't know.
 - Never say it is safe to work while a stop-work alert or lightning countdown is active.
 - For injuries or emergencies, tell them to call 911 first, then their supervisor.
 - Reply in plain text: short sentences and "•" bullets, no markdown. People read this on phones in the field."""
@@ -62,39 +64,82 @@ def validate(payload):
     return cleaned, site_id
 
 
-def site_summary(site):
-    band = level(site.hazard_index or 0)
+MAX_NAMED_SITES = 3  # sites named in the conversation that get full details
+# Words in site names too common to identify a site alone ("is the river rising?" isn't about River Bend).
+GENERIC_WORDS = {
+    "point", "energy", "center", "county", "west", "east", "north", "south", "fort", "port", "beach", "cape",
+    "river", "bend", "grand", "gulf", "texas", "project", "creek", "station", "generating", "island", "mile",
+    "nine", "four", "peak", "cities", "ferry", "cliffs", "canyon", "corners", "bottom", "robert", "moses",
+}
+
+
+def _words(text):
+    return re.sub(r"[^a-z0-9]+", " ", text.lower()).split()
+
+
+def mentioned_sites(messages, sites):
+    """Sites named in the user's messages, newest message first, e.g. "baldwin" or "w.a. parish".
+
+    A site matches on its full name, its first two words, or any distinctive word of its name."""
+    found = []
+    for message in reversed([m for m in messages if m["role"] == "user"]):
+        text = f" {' '.join(_words(message['content']))} "
+        words = set(text.split())
+        for site in sites:
+            name = _words(site.name)
+            phrases = {" ".join(name), " ".join(name[:2])}
+            distinctive = {w for w in name if len(w) >= 4 and w not in GENERIC_WORDS}
+            if site not in found and (any(f" {p} " in text for p in phrases) or distinctive & words):
+                found.append(site)
+        if len(found) >= MAX_NAMED_SITES:
+            break
+    return found[:MAX_NAMED_SITES]
+
+
+def site_overview(site):
+    """One line per site in allSites."""
     return {
-        "name": site.name, "state": site.state, "waterway": site.waterway,
-        "hazardIndex": round(site.hazard_index or 0, 1), "decision": band["decision"],
+        "id": site.id, "name": site.name, "state": site.state,
+        "hazardIndex": round(site.hazard_index or 0, 1), "decision": level(site.hazard_index or 0)["decision"],
+        "drivers": (site.drivers or [])[:2],
+    }
+
+
+def site_details(site, rules):
+    """Everything the site page shows: readings, hazards, alerts, lightning and tomorrow's briefing."""
+    return {
+        **site_overview(site),
+        "waterway": site.waterway,
         "drivers": site.drivers or [],
+        "hazards": site.hazards or {},
+        "conditions": site.conditions or {},
+        "activeAlerts": [
+            {"title": a.title, "message": a.message, "severity": a.severity}
+            for a in Alert.query.filter_by(site_id=site.id, active=True)
+        ],
+        "lightning": ingest.lightning_status(site.id, rules),
+        "tomorrow": build_briefing(site),
     }
 
 
-def build_context(user, site_id):
-    """The data the assistant may use: riskiest sites, rules, and the site on screen."""
+def build_context(user, site_id, messages):
+    """The data the assistant may use: every site in brief, plus full details for the site on
+    screen, the user's own site and the sites named in the conversation."""
     rules = get_setting("alert_rules")
-    sites = Site.query.filter_by(active=True).all()
-    ranked = sorted(sites, key=lambda s: s.hazard_index or 0, reverse=True)[:5]
-    context = {
+    sites = sorted(Site.query.filter_by(active=True).all(), key=lambda s: s.hazard_index or 0, reverse=True)
+    by_id = {s.id: s for s in sites}
+    detailed = []
+    for site in [by_id.get(site_id), by_id.get(user.site_id), *mentioned_sites(messages, sites)]:
+        if site and site not in detailed:
+            detailed.append(site)
+    return {
         "userRole": user.role,
+        "userSiteId": user.site_id if user.site_id in by_id else None,
+        "currentSiteId": site_id if site_id in by_id else None,
         "alertRules": rules,
-        "riskiestSites": [site_summary(s) for s in ranked],
+        "allSites": [site_overview(s) for s in sites],
+        "siteDetails": [site_details(s, rules) for s in detailed],
     }
-    site = db.session.get(Site, site_id) if site_id else None
-    if site and site.active:
-        context["currentSite"] = {
-            **site_summary(site),
-            "hazards": site.hazards or {},
-            "conditions": site.conditions or {},
-            "activeAlerts": [
-                {"title": a.title, "message": a.message, "severity": a.severity}
-                for a in Alert.query.filter_by(site_id=site.id, active=True)
-            ],
-            "lightning": ingest.lightning_status(site.id, rules),
-            "tomorrow": build_briefing(site),
-        }
-    return context
 
 
 def provider(cfg):
@@ -112,7 +157,8 @@ def reply(messages, user, site_id):
     if name is None:
         raise AssistantError(
             "The AI assistant isn't set up on this server yet (set GEMINI_API_KEY or ANTHROPIC_API_KEY).", 503)
-    system = f"{SYSTEM_PROMPT}\n\n<site_data>\n{json.dumps(build_context(user, site_id), default=str)}\n</site_data>"
+    context = build_context(user, site_id, messages)
+    system = f"{SYSTEM_PROMPT}\n\n<site_data>\n{json.dumps(context, default=str)}\n</site_data>"
     text = ask_claude(system, messages) if name == "claude" else ask_gemini(system, messages)
     return text or "Sorry, I don't have an answer for that."
 
