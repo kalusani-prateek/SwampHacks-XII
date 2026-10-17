@@ -20,6 +20,8 @@ copy .env.example .env                                        # optional; defaul
 
 On first start it creates the SQLite database (`instance/planit.db`), loads the 58 sites from `data/sites.csv`, creates the demo accounts **supervisor** and **crew** (password `planit-demo`, development only) and starts the background jobs. The first weather refresh runs a few seconds after startup.
 
+Run one copy at a time. On Windows a second server could otherwise listen on the same port, with both copies answering requests and running the jobs, so `run.py` and `serve.py` exit with "already running" if the port is taken (`app/ports.py`). CLI commands (`flask --app run ...`) don't start the background jobs.
+
 Run the frontend next to it with `npm run dev` in `frontend/`, which proxies `/api` here. Alternatively, run `npm run build` once; this server then also serves the built app at `http://localhost:5000`.
 
 Production: `python serve.py` (Waitress). See [`../docs/DEPLOY.md`](../docs/DEPLOY.md).

@@ -8,7 +8,8 @@ from config import Config
 from .extensions import cors, db, login_manager
 
 
-def create_app(config_class=Config):
+def create_app(config_class=Config, with_jobs=True):
+    """Build the app. with_jobs=False skips the background data jobs (used by CLI commands)."""
     app = Flask(__name__)
     app.config.from_object(config_class)
     app.json.sort_keys = False
@@ -44,7 +45,7 @@ def create_app(config_class=Config):
         from .seed import init_db
         init_db(app)
 
-    if app.config["ENABLE_JOBS"] and not app.config.get("TESTING"):
+    if with_jobs and app.config["ENABLE_JOBS"] and not app.config.get("TESTING"):
         from .jobs import start_jobs
         start_jobs(app)
 

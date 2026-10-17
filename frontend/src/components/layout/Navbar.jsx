@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { hasRole, ROLES } from '../../utils/roles.js';
-import { USE_MOCKS } from '../../api/client.js';
+import { BACKEND_HINT, isMockFallback, USE_MOCKS } from '../../api/client.js';
 import { PATHS, urls } from '../../routes.js';
 import { notificationsSupported } from '../../hooks/useAlertNotifications.js';
 
@@ -68,7 +68,10 @@ export default function Navbar({ activeAlertCount = 0 }) {
         {/* User info + logout */}
         <div className="ml-auto hidden items-center gap-3 md:flex">
           {USE_MOCKS && (
-            <span className="rounded bg-yellow-400/20 px-2 py-0.5 text-xs font-semibold text-yellow-300">
+            <span
+              className="cursor-help rounded bg-yellow-400/20 px-2 py-0.5 text-xs font-semibold text-yellow-300"
+              title={isMockFallback() ? BACKEND_HINT : 'Demo data (VITE_USE_MOCKS=true)'}
+            >
               MOCK DATA
             </span>
           )}

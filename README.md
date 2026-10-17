@@ -55,7 +55,7 @@ npm install
 npm run dev
 ```
 
-Sign in with the **supervisor** or **crew** demo button. Without the backend running, the frontend falls back to demo data. Add `ANTHROPIC_API_KEY` to `backend/.env` to turn on the AI assistant.
+Sign in with the **supervisor** or **crew** demo button. If the website can't reach the backend, it shows demo data with a **MOCK DATA** badge, then switches to live data by itself once the backend is running, so the start order doesn't matter. Start the backend only once: a second copy exits with a message saying it's already running. Add `ANTHROPIC_API_KEY` to `backend/.env` to turn on the AI assistant.
 
 On Windows PowerShell, use `npm.cmd` if `npm` is blocked by the script policy.
 

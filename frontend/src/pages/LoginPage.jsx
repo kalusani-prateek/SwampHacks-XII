@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { USE_MOCKS } from '../api/client.js';
+import { BACKEND_HINT, isMockFallback, USE_MOCKS } from '../api/client.js';
 import { useMeta } from '../hooks/useMeta.js';
 import { usePageTitle } from '../hooks/usePageTitle.js';
 import { PATHS, urls } from '../routes.js';
@@ -53,6 +53,11 @@ export default function LoginPage() {
         <p className="mb-8 text-center text-sm text-slate-400">Job-site hazard monitoring for utility field crews</p>
 
         <form onSubmit={handleSubmit} className="card space-y-4">
+          {isMockFallback() && (
+            <p role="status" className="rounded-md bg-yellow-50 px-3 py-2 text-xs text-yellow-800">
+              {BACKEND_HINT}
+            </p>
+          )}
           <div>
             <label className="label" htmlFor="username">
               Username
@@ -88,7 +93,7 @@ export default function LoginPage() {
           {demoAccounts && (
             <div className="border-t border-slate-100 pt-3 text-xs text-slate-500">
               <p className="mb-2">
-                {USE_MOCKS ? 'Mock mode: pick a demo account (any password works).' : 'Demo server: pick a demo account.'}
+                {USE_MOCKS ? 'Demo data: pick a demo account (any password works).' : 'Demo server: pick a demo account.'}
               </p>
               <div className="flex gap-2">
                 {demoAccounts.usernames.map((name) => (

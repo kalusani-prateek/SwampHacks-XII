@@ -14,7 +14,7 @@ npm test                 # unit tests (Node's built-in test runner)
 The app checks for the backend at startup (`GET /api/meta`):
 
 - **Backend running** (`python run.py` in `backend/`, port 5000, proxied by Vite): live data. On a development server the sign-in page offers the demo accounts `supervisor` and `crew`.
-- **No backend:** demo data from `src/mocks/` (58 real plants with generated readings), a **MOCK DATA** badge in the navbar, and any password works.
+- **No backend:** demo data from `src/mocks/` (58 real plants with generated readings), a **MOCK DATA** badge in the navbar, and any password works. On the dev server the page switches to live data by itself when the backend starts: Vite checks port 5000 every 2 seconds (`backendWatcher` in `vite.config.js`) and tells open pages to reload.
 
 Force one mode with `VITE_USE_MOCKS=true` or `false` in `frontend/.env` (see `.env.example`).
 

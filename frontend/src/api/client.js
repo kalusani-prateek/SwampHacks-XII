@@ -2,9 +2,9 @@
 // REST API client
 // =============================================================================
 // Every network call in the app goes through `apiRequest`. Each service module
-// in src/api/ checks `USE_MOCKS` first: while the Flask backend is not built,
-// it returns data from src/mocks instead. Set VITE_USE_MOCKS=false in .env to
-// switch the whole app to the real REST API in one place.
+// in src/api/ checks `USE_MOCKS` first: when no backend answers at startup, it
+// returns data from src/mocks instead. VITE_USE_MOCKS in .env forces one mode
+// for the whole app in one place.
 // =============================================================================
 
 import { withQuery } from '../utils/url.js';
@@ -37,6 +37,16 @@ export async function detectBackend() {
   }
   return USE_MOCKS;
 }
+
+/** True when demo data is showing only because the backend didn't answer (not forced by VITE_USE_MOCKS=true). */
+export function isMockFallback() {
+  return USE_MOCKS && MOCK_SETTING === 'auto';
+}
+
+/** Explains the demo-data fallback in the UI (navbar badge, sign-in page). */
+export const BACKEND_HINT =
+  "The backend isn't running, so this is demo data. Start it (in backend: .venv\\Scripts\\python run.py) and " +
+  (import.meta.hot ? 'this page switches to live data by itself.' : 'refresh the page.');
 
 /** Error thrown for non-2xx responses; carries the HTTP status. */
 export class ApiError extends Error {
