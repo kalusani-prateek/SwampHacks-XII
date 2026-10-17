@@ -2,14 +2,93 @@
 // password. The designated site is listed first and highlighted on the Sites,
 // Alerts, Hazard Reports and Briefings pages. Changing your username, email or
 // password needs your current password (the server checks it too).
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import PageHeader from '../components/common/PageHeader.jsx';
 import { ErrorState, LoadingState } from '../components/common/Status.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useApi } from '../hooks/useApi.js';
+import { usePushNotifications } from '../hooks/usePushNotifications.js';
 import { getSites } from '../api/sites.js';
+import { sendTestPush } from '../api/push.js';
 import { urls } from '../routes.js';
+
+const PUSH_STATUS = {
+  checking: 'Checking…',
+  on: 'On for this device',
+  off: 'Off on this device',
+  blocked: 'Blocked in this browser',
+  unavailable: 'Not available here',
+};
+
+/** Phone and desktop notifications for this device (Web Push). */
+function NotificationSettings({ user }) {
+  const { status, busy, error, reason, enable, disable } = usePushNotifications();
+  const [test, setTest] = useState({ text: '', failed: false });
+
+  async function sendTest() {
+    try {
+      const { message } = await sendTestPush(); // REST API PLACEHOLDER: POST /api/push/test
+      setTest({ text: `${message}. It should appear within a few seconds.`, failed: false });
+    } catch (err) {
+      setTest({ text: err.message, failed: true });
+    }
+  }
+
+  return (
+    <section id="notifications" className="card mt-6 max-w-xl scroll-mt-20 space-y-3">
+      <h2 className="font-semibold text-navy-800">Notifications</h2>
+      <p className="text-sm text-slate-600">Get a notification on this phone or computer, even when PlanIT is closed, when:</p>
+      <ul className="list-disc space-y-0.5 pl-5 text-sm text-slate-600">
+        <li>tomorrow's safety briefing for your site is ready (6 PM site time)</li>
+        <li>your site turns NO-GO</li>
+        <li>someone reports a hazard at your site</li>
+      </ul>
+      {!user.siteId && <p className="text-sm text-orange-700">Choose your site above to get these.</p>}
+      <p className="text-sm">
+        <span className="font-medium text-slate-700">This device: </span>
+        <span className={status === 'on' ? 'font-semibold text-emerald-700' : 'text-slate-600'}>{PUSH_STATUS[status]}</span>
+      </p>
+      {status === 'unavailable' && reason && <p className="rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{reason}</p>}
+      {status === 'blocked' && (
+        <p className="rounded-lg bg-slate-50 p-3 text-sm text-slate-700">
+          Notifications are blocked for this site. Allow them in your browser or phone settings (the lock or site-settings icon
+          next to the address), then reload this page.
+        </p>
+      )}
+      {error && (
+        <p role="alert" className="text-sm text-red-600">
+          {error}
+        </p>
+      )}
+      <div className="flex flex-wrap gap-2">
+        {status === 'off' && (
+          <button type="button" className="btn-primary" onClick={enable} disabled={busy}>
+            {busy ? 'Turning on…' : 'Turn on notifications'}
+          </button>
+        )}
+        {status === 'on' && (
+          <>
+            <button type="button" className="btn-secondary" onClick={sendTest}>
+              Send a test notification
+            </button>
+            <button type="button" className="btn-secondary" onClick={disable} disabled={busy}>
+              Turn off on this device
+            </button>
+          </>
+        )}
+      </div>
+      {test.text && (
+        <p role={test.failed ? 'alert' : 'status'} className={`text-sm ${test.failed ? 'text-red-600' : 'text-emerald-700'}`}>
+          {test.text}
+        </p>
+      )}
+      <p className="text-xs text-slate-400">
+        Each phone or computer is set up separately. Signing out turns notifications off on that device.
+      </p>
+    </section>
+  );
+}
 
 // The backend's rules (backend/app/api/validation.py), checked here first for instant feedback.
 const USERNAME = /^[A-Za-z0-9_.-]{3,64}$/;
@@ -32,6 +111,12 @@ export default function AccountPage() {
   const [form, setForm] = useState(() => formFor(user));
   const [message, setMessage] = useState({ error: '', saved: '' });
   const [saving, setSaving] = useState(false);
+  const { hash } = useLocation();
+
+  // The navbar bell links to /account#notifications: scroll there once the page has loaded.
+  useEffect(() => {
+    if (!loading && hash === '#notifications') document.getElementById('notifications')?.scrollIntoView({ behavior: 'smooth' });
+  }, [loading, hash]);
 
   const update = (field) => (e) => setForm({ ...form, [field]: e.target.value });
   const changes = {};
@@ -180,6 +265,8 @@ export default function AccountPage() {
           {saving ? 'Saving…' : 'Save changes'}
         </button>
       </form>
+
+      <NotificationSettings user={user} />
     </>
   );
 }

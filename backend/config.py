@@ -101,6 +101,12 @@ class Config:
     TWILIO_AUTH_TOKEN = env("TWILIO_AUTH_TOKEN")
     TWILIO_FROM = env("TWILIO_FROM")
 
+    # Web Push notifications to phones and computers. The signing key (VAPID) is created on
+    # first use and kept in this file; keep it, or every device has to turn notifications on again.
+    VAPID_PRIVATE_KEY_FILE = Path(env("VAPID_PRIVATE_KEY_FILE", str(BACKEND_DIR / "instance" / "vapid_private_key.pem")))
+    VAPID_SUBJECT = env("VAPID_SUBJECT", "mailto:planit-control@example.com")  # contact for push services
+    PUSH_IN_BACKGROUND = True  # send from a background thread so requests and jobs don't wait
+
 
 class TestConfig(Config):
     """Used by the pytest suite: in-memory database, no background jobs, no network."""
@@ -120,3 +126,4 @@ class TestConfig(Config):
     ANTHROPIC_API_KEY = ""
     SMTP_HOST = ""
     TWILIO_ACCOUNT_SID = ""
+    PUSH_IN_BACKGROUND = False

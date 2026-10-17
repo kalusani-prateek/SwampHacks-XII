@@ -20,6 +20,7 @@ def app(tmp_path):
     class Config(TestConfig):
         UPLOAD_FOLDER = tmp_path / "uploads"
         FRONTEND_DIST = tmp_path / "dist"
+        VAPID_PRIVATE_KEY_FILE = tmp_path / "vapid.pem"
 
     limiter._hits.clear()  # rate-limit counters are per process
     application = create_app(Config)

@@ -72,6 +72,8 @@ CLOUDFARE DEMO STEPS:
 
 Sign in with the **supervisor** or **crew** demo button. If the website can't reach the backend, it shows demo data with a **MOCK DATA** badge, then switches to live data by itself once the backend is running, so the start order doesn't matter. Start the backend only once: a second copy exits with a message saying it's already running. Add `GEMINI_API_KEY` (free tier) or `ANTHROPIC_API_KEY` to `backend/.env` to turn on the AI assistant.
 
+**Notifications on phones and computers:** turn them on per device in **My account › Notifications** (or tap the bell in the top bar). Everyone then gets, for their own site, tomorrow's briefing at 6 PM, a warning when the site turns NO-GO, and new hazard reports there, even with the app closed. Notifications need a secure address: `http://localhost` on the same computer, or an `https` link on a phone (for example through a tunnel; see [docs/DEPLOY.md](docs/DEPLOY.md)). On iPhone and iPad, add the app to the Home Screen first (Share › Add to Home Screen) and turn notifications on from there.
+
 On Windows PowerShell, use `npm.cmd` if `npm` is blocked by the script policy. Prefer not to install Python and Node? Use Docker instead (next section).
 
 ## Run with Docker

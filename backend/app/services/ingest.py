@@ -13,9 +13,9 @@ from flask import current_app
 from ..extensions import db
 from ..models import Alert, HazardReport, LightningStrike, Site, iso, utcnow
 from ..settings_store import get_setting
-from . import alert_engine, fires, lightning, notify, nws, rivers, weather, wildlife
+from . import alert_engine, fires, lightning, notify, nws, push, rivers, weather, wildlife
 from .events import bus
-from .hazards import lightning_summary, score_site
+from .hazards import level, lightning_summary, score_site
 
 log = logging.getLogger(__name__)
 WRITE_LOCK = threading.RLock()
@@ -73,7 +73,10 @@ def rescore(sites):
                             "nws": site.nws, "river": site.river, "fire": site.fire, "wildlife": site.wildlife}
                 scored = score_site(readings, recent_strikes(site.id, now), crew_wildlife_reports(site.id, now), rules, now)
                 results.append((site, scored))
+        turned_no_go = []
         for site, scored in results:
+            if level(site.hazard_index or 0)["decision"] != "NO-GO" and level(scored["hazardIndex"])["decision"] == "NO-GO":
+                turned_no_go.append(site)
             site.hazard_index = scored["hazardIndex"]
             site.hazards = scored["hazards"]
             site.conditions = scored["conditions"]
@@ -84,6 +87,8 @@ def rescore(sites):
             created += alert_engine.sync_alerts(site, wanted, now, active[site.id])
         db.session.commit()
     announce(created)
+    for site in turned_no_go:  # phone/desktop notification for the people who work there
+        push.notify_no_go(site)
     return created
 
 

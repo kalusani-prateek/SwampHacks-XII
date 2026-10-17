@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import * as authApi from '../api/auth.js';
 import { updateUser } from '../api/users.js';
+import { forgetThisDevice } from '../api/push.js';
 import { USE_MOCKS } from '../api/client.js';
 import { clearOfflineData } from '../offline.js';
 
@@ -76,6 +77,7 @@ export function AuthProvider({ children }) {
   }
 
   async function logout() {
+    await forgetThisDevice().catch(() => {}); // a shared device stops getting this account's notifications
     await authApi.logout();
     clearOfflineData(); // the next person on a shared device shouldn't see this user's saved data
     // Both updates render together, so the redirect sees signedOut = true.

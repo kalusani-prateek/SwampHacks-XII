@@ -44,6 +44,8 @@ class User(UserMixin, db.Model):
     site_id = db.Column(db.String(80), db.ForeignKey("sites.id", ondelete="SET NULL"))
 
     site = db.relationship("Site")
+    # Devices with notifications on; deleted with the account.
+    push_subscriptions = db.relationship("PushSubscription", back_populates="user", cascade="all, delete-orphan")
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -215,6 +217,20 @@ class HazardReport(db.Model):
         if viewer is not None:
             data["canEdit"] = self.editable_by(viewer)
         return data
+
+
+class PushSubscription(db.Model):
+    """A phone or computer that turned on notifications (Web Push). One row per browser."""
+    __tablename__ = "push_subscriptions"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    endpoint = db.Column(db.Text, nullable=False, unique=True)  # the browser's push-service address
+    p256dh = db.Column(db.String(200), nullable=False)          # its public encryption key
+    auth = db.Column(db.String(100), nullable=False)            # its authentication secret
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+
+    user = db.relationship("User", back_populates="push_subscriptions")
 
 
 class Briefing(db.Model):
