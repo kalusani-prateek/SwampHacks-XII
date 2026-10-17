@@ -32,10 +32,11 @@ export default function ReportHazardPage() {
 
   const site = data?.sites.find((s) => s.id === siteId);
 
-  // Validate ?site= against real sites; missing or unknown -> first site.
+  // Validate ?site= against real sites; missing or unknown -> your designated site (or the first site).
   useEffect(() => {
-    if (data?.sites.length && !data.sites.some((s) => s.id === siteId)) setSiteId(data.sites[0].id);
-  }, [data, siteId, setSiteId]);
+    if (!data?.sites.length || data.sites.some((s) => s.id === siteId)) return;
+    setSiteId(data.sites.some((s) => s.id === user.siteId) ? user.siteId : data.sites[0].id);
+  }, [data, siteId, setSiteId, user.siteId]);
   // Clear the pin when the site changes.
   useEffect(() => setPin(null), [siteId]);
 

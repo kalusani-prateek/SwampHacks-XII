@@ -14,9 +14,12 @@ export async function getUsers() {
   return apiRequest(ENDPOINTS.users.list);
 }
 
+/** Mock mode: the site name that goes with a designated site id. */
+const mockSiteName = (siteId) => mockStore.sites.find((s) => s.id === siteId)?.name ?? null;
+
 /**
- * Add an account with a role (supervisor only).
- * REST API PLACEHOLDER: POST /api/users  { username, email, password, role }  -> { user }   [PLANNED]
+ * Add an account with a role and, optionally, its designated site (supervisor only).
+ * REST API PLACEHOLDER: POST /api/users  { username, email, password, role, siteId? }  -> { user }
  */
 export async function createUser(data) {
   if (USE_MOCKS) {
@@ -24,7 +27,7 @@ export async function createUser(data) {
       throw new ApiError('Username already exists', 409);
     }
     const { password: _password, ...fields } = data; // the mock never stores passwords
-    const user = { id: Math.max(0, ...mockStore.users.map((u) => u.id)) + 1, ...fields };
+    const user = { id: Math.max(0, ...mockStore.users.map((u) => u.id)) + 1, ...fields, siteName: mockSiteName(data.siteId) };
     mockStore.users.push(user);
     return mockResponse({ user });
   }
@@ -32,15 +35,17 @@ export async function createUser(data) {
 }
 
 /**
- * Update an account. Users may edit themselves; only supervisors may change `role`.
- * REST API PLACEHOLDER: PUT /api/users/:id  { username?, email?, password?, role? }   [EXISTS - add `role`]
+ * Update an account: { username?, email?, password?, siteId?, role? (supervisors), currentPassword? }.
+ * Users may edit themselves; changing your own username, email or password needs currentPassword.
+ * REST API PLACEHOLDER: PUT /api/users/:id  -> { message, user }
  */
 export async function updateUser(userId, data) {
   if (USE_MOCKS) {
     const user = mockStore.users.find((u) => u.id === userId);
     if (!user) return mockNotFound('User not found');
-    Object.assign(user, data);
-    return mockResponse({ message: 'User updated successfully' });
+    const { password: _password, currentPassword: _current, ...fields } = data; // mock mode accepts any password
+    Object.assign(user, fields, 'siteId' in fields ? { siteName: mockSiteName(fields.siteId) } : {});
+    return mockResponse({ message: 'User updated successfully', user });
   }
   return apiRequest(ENDPOINTS.users.detail(userId), { method: 'PUT', body: data });
 }

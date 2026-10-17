@@ -1,8 +1,7 @@
 // User roles. There is no separate admin: supervisors hold every management
 // privilege (PlanIt Dashboard + Manage panel), while crew members view sites,
 // get alerts, report hazards, read briefings and use the assistant.
-// The current backend only has `is_admin`; docs/API_PLAN.md replaces it with a
-// `role` column ("crew" | "supervisor").
+// The backend stores this in users.role and checks it on every request (docs/API.md).
 export const ROLES = {
   CREW: 'crew',
   SUPERVISOR: 'supervisor',

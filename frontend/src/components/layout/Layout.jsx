@@ -1,13 +1,16 @@
-// App shell for signed-in pages: navbar, live stop-work banner, page content
-// and the floating AI assistant.
+// App shell for signed-in pages: navbar, offline and stop-work banners, page
+// content and the floating AI assistant. New alerts also raise browser
+// notifications (once the user allows them in the navbar).
+import { useEffect } from 'react';
 import { Link, Outlet } from 'react-router-dom';
 import { urls } from '../../routes.js';
 import Navbar from './Navbar.jsx';
 import ChatWidget from '../chat/ChatWidget.jsx';
 import { useApi } from '../../hooks/useApi.js';
 import { usePolling } from '../../hooks/usePolling.js';
+import { useAlertNotifications } from '../../hooks/useAlertNotifications.js';
+import { useOnlineStatus } from '../../hooks/useOnlineStatus.js';
 import { getAlerts, subscribeToAlerts } from '../../api/alerts.js';
-import { useEffect } from 'react';
 
 const ALERT_POLL_MS = 30_000;
 
@@ -19,12 +22,24 @@ export default function Layout() {
   // REST API PLACEHOLDER: GET /api/alerts/stream (SSE). Refresh as soon as the server pushes an alert.
   useEffect(() => subscribeToAlerts(() => reload({ silent: true })), [reload]);
 
+  useAlertNotifications(data?.alerts);
+  const online = useOnlineStatus();
+
   const alerts = data?.alerts ?? [];
   const stopWork = alerts.filter((a) => a.severity === 'stop-work');
 
   return (
     <div className="min-h-screen bg-slate-100">
       <Navbar activeAlertCount={alerts.length} />
+
+      {/* Offline: pages show the last data saved on this device (see public/sw.js) */}
+      {!online && (
+        <div className="bg-amber-500 text-amber-950">
+          <p className="mx-auto max-w-7xl px-4 py-2 text-sm font-semibold">
+            You're offline. Showing the last data saved on this device; reports and changes need a connection.
+          </p>
+        </div>
+      )}
 
       {/* Stop-work banner: shown on every page while any site has an active stop-work alert */}
       {stopWork.length > 0 && (

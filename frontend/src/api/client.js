@@ -2,22 +2,51 @@
 // REST API client
 // =============================================================================
 // Every network call in the app goes through `apiRequest`. Each service module
-// in src/api/ checks `USE_MOCKS` first: while the Flask backend is not built,
-// it returns data from src/mocks instead. Set VITE_USE_MOCKS=false in .env to
-// switch the whole app to the real REST API in one place.
+// in src/api/ checks `USE_MOCKS` first: when no backend answers at startup, it
+// returns data from src/mocks instead. VITE_USE_MOCKS in .env forces one mode
+// for the whole app in one place.
 // =============================================================================
 
 import { withQuery } from '../utils/url.js';
 
 /**
- * Base URL of the Flask REST API (see docs/API_PLAN.md). Trailing slashes are
+ * Base URL of the Flask REST API (see docs/API.md). Trailing slashes are
  * stripped so "/api/" + "/sites" never becomes "/api//sites". Can be relative
  * ("/api", via the Vite proxy) or absolute ("https://api.example.com/api").
  */
 export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/+$/, '');
 
-/** When true, services return mock data instead of calling the backend. */
-export const USE_MOCKS = import.meta.env.VITE_USE_MOCKS !== 'false';
+/**
+ * When true, services return mock data instead of calling the backend.
+ * VITE_USE_MOCKS: "true" = always mock, "false" = always the real API,
+ * "auto" (default) = use the backend if it answers at startup (see detectBackend).
+ * Declared with `let` so every module sees the value detectBackend() sets.
+ */
+const MOCK_SETTING = (import.meta.env.VITE_USE_MOCKS ?? 'auto').toLowerCase();
+export let USE_MOCKS = MOCK_SETTING === 'true';
+
+/** Decide mock vs. real API once, before the app renders (called from main.jsx). */
+export async function detectBackend() {
+  if (MOCK_SETTING !== 'auto') return USE_MOCKS;
+  try {
+    const response = await fetch(`${API_BASE_URL}/meta`, { signal: AbortSignal.timeout(2500) });
+    const data = await response.json();
+    USE_MOCKS = !(response.ok && data.api === 'planit-control');
+  } catch {
+    USE_MOCKS = true; // no backend running: fall back to demo data
+  }
+  return USE_MOCKS;
+}
+
+/** True when demo data is showing only because the backend didn't answer (not forced by VITE_USE_MOCKS=true). */
+export function isMockFallback() {
+  return USE_MOCKS && MOCK_SETTING === 'auto';
+}
+
+/** Explains the demo-data fallback in the UI (navbar badge, sign-in page). */
+export const BACKEND_HINT =
+  "The backend isn't running, so this is demo data. Start it (in backend: .venv\\Scripts\\python run.py) and " +
+  (import.meta.hot ? 'this page switches to live data by itself.' : 'refresh the page.');
 
 /** Error thrown for non-2xx responses; carries the HTTP status. */
 export class ApiError extends Error {

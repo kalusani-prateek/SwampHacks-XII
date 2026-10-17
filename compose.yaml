@@ -1,0 +1,20 @@
+# PlanIT Control in one container: the API, the background data jobs and the built web app.
+#   docker compose up --build      ->  http://localhost:5000
+# Settings come from backend/.env (template: backend/.env.example). See "Run with Docker" in README.md.
+services:
+  planit:
+    build: .
+    image: planit-control
+    ports:
+      - "5000:5000"
+    env_file:
+      - path: backend/.env
+        required: false # without it the app runs with default (production) settings
+    volumes:
+      - planit-data:/app/backend/instance # SQLite database
+      - planit-uploads:/app/backend/uploads # hazard report photos
+    restart: unless-stopped
+
+volumes:
+  planit-data:
+  planit-uploads:

@@ -8,17 +8,20 @@
 //
 // Page URLs mirror the REST API resources they read from, e.g.
 //   /sites/turkey-point  <->  GET /api/sites/turkey-point
-// The full page -> API mapping is in docs/API_PLAN.md ("Frontend routes").
+// The full page -> API mapping is in docs/API.md ("Frontend routes").
 // =============================================================================
 import { segment, withQuery } from './utils/url.js';
 
 export const PATHS = {
   home: '/',
   login: '/login',
+  register: '/register',
+  account: '/account', //        your profile: username, email, password, designated site
   dashboard: '/dashboard',
   sites: '/sites',
   siteDetail: '/sites/:siteId',
   alerts: '/alerts',
+  reports: '/reports',
   newReport: '/reports/new',
   briefings: '/briefings',
   manage: '/manage', //          supervisor-only management panel
@@ -40,15 +43,26 @@ export const isManageTab = (slug) => MANAGE_TABS.some((tab) => tab.slug === slug
 /** Allowed values for URL query filters (anything else is ignored and removed). */
 export const DASHBOARD_DECISIONS = ['all', 'no-go', 'caution', 'go'];
 export const REPORT_STATUSES = ['all', 'open', 'verified', 'resolved', 'dismissed'];
+/** Time windows on the Hazard Reports page (?days=7); "all" means no limit. */
+export const REPORT_WINDOWS = [
+  { value: '1', label: 'Last 24 hours' },
+  { value: '7', label: 'Last 7 days' },
+  { value: '30', label: 'Last 30 days' },
+  { value: 'all', label: 'All time' },
+];
+export const DEFAULT_REPORT_WINDOW = '30';
 
 // Each builder documents the readable URL it produces.
 export const urls = {
   home: () => PATHS.home, //                                         /
   login: ({ next } = {}) => withQuery(PATHS.login, { next }), //     /login?next=/manage/users
+  register: ({ next } = {}) => withQuery(PATHS.register, { next }), // /register?next=/alerts
+  account: () => PATHS.account, //                                   /account
   dashboard: ({ decision } = {}) => withQuery(PATHS.dashboard, { decision }), // /dashboard?decision=no-go
   sites: ({ q } = {}) => withQuery(PATHS.sites, { q }), //           /sites?q=florida
   site: (siteId) => `${PATHS.sites}/${segment(siteId)}`, //          /sites/turkey-point
   alerts: ({ type } = {}) => withQuery(PATHS.alerts, { type }), //   /alerts?type=lightning
+  reports: ({ q, site, type, status, days, mine } = {}) => withQuery(PATHS.reports, { q, site, type, status, days, mine }), // /reports?type=wildlife&days=7
   newReport: ({ site } = {}) => withQuery(PATHS.newReport, { site }), // /reports/new?site=turkey-point
   briefings: ({ q } = {}) => withQuery(PATHS.briefings, { q }), //   /briefings?q=texas
   manage: (tab = DEFAULT_MANAGE_TAB, query) => withQuery(`${PATHS.manage}/${segment(tab)}`, query), // /manage/reports?status=open

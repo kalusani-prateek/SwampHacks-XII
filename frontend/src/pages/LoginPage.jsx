@@ -1,20 +1,21 @@
 // Sign-in page (/login?next=/manage/users). After signing in, the user returns
 // to `next` if it is a safe in-app path, otherwise to their role's home page.
-// In mock mode, the demo accounts are listed for quick access.
+// When demo accounts exist (mock mode, or a development server), they are
+// offered as one-click buttons.
 import { useState } from 'react';
-import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { USE_MOCKS } from '../api/client.js';
+import { BACKEND_HINT, isMockFallback, USE_MOCKS } from '../api/client.js';
+import { useMeta } from '../hooks/useMeta.js';
 import { usePageTitle } from '../hooks/usePageTitle.js';
 import { PATHS, urls } from '../routes.js';
 import { isSafeInternalPath } from '../utils/url.js';
 
-// Two roles only: supervisors hold all management privileges (no admin account).
-const DEMO_USERS = ['supervisor', 'crew'];
-
 export default function LoginPage() {
   usePageTitle('Sign in');
   const { user, login } = useAuth();
+  // Two roles only (supervisor and crew); the server says whether demo accounts exist.
+  const demoAccounts = useMeta()?.demoAccounts;
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const [form, setForm] = useState({ username: '', password: '' });
@@ -23,7 +24,8 @@ export default function LoginPage() {
 
   // Validate `next` so /login?next=https://evil.example can't redirect off-site.
   const nextParam = params.get('next');
-  const next = isSafeInternalPath(nextParam) && !nextParam.startsWith(PATHS.login) ? nextParam : null;
+  const next =
+    isSafeInternalPath(nextParam) && ![PATHS.login, PATHS.register].some((path) => nextParam.startsWith(path)) ? nextParam : null;
 
   if (user) return <Navigate to={next ?? urls.home()} replace />;
 
@@ -52,6 +54,11 @@ export default function LoginPage() {
         <p className="mb-8 text-center text-sm text-slate-400">Job-site hazard monitoring for utility field crews</p>
 
         <form onSubmit={handleSubmit} className="card space-y-4">
+          {isMockFallback() && (
+            <p role="status" className="rounded-md bg-yellow-50 px-3 py-2 text-xs text-yellow-800">
+              {BACKEND_HINT}
+            </p>
+          )}
           <div>
             <label className="label" htmlFor="username">
               Username
@@ -83,17 +90,25 @@ export default function LoginPage() {
           <button type="submit" className="btn-primary w-full" disabled={submitting}>
             {submitting ? 'Signing in…' : 'Sign in'}
           </button>
+          <p className="text-center text-sm text-slate-500">
+            New to PlanIT?{' '}
+            <Link to={urls.register({ next })} className="font-medium text-brand hover:underline">
+              Create an account
+            </Link>
+          </p>
 
-          {USE_MOCKS && (
+          {demoAccounts && (
             <div className="border-t border-slate-100 pt-3 text-xs text-slate-500">
-              <p className="mb-2">Mock mode: pick a demo account (any password works).</p>
+              <p className="mb-2">
+                {USE_MOCKS ? 'Demo data: pick a demo account (any password works).' : 'Demo server: pick a demo account.'}
+              </p>
               <div className="flex gap-2">
-                {DEMO_USERS.map((name) => (
+                {demoAccounts.usernames.map((name) => (
                   <button
                     key={name}
                     type="button"
                     className="btn-secondary flex-1 px-2 py-1 text-xs"
-                    onClick={() => setForm({ username: name, password: 'demo' })}
+                    onClick={() => setForm({ username: name, password: demoAccounts.password })}
                   >
                     {name}
                   </button>
