@@ -1,8 +1,10 @@
 """AI assistant endpoint, with Claude and Gemini replaced by stand-ins (no network, no cost)."""
+import json
 from types import SimpleNamespace
 
 import pytest
 
+from app.models import Site
 from app.services import assistant
 
 
@@ -151,3 +153,41 @@ def test_rate_limit(app, crew, claude):
     assert ask(crew).status_code == 200
     assert ask(crew).status_code == 200
     assert ask(crew).status_code == 429
+
+
+def site_data(system_text):
+    """The JSON the assistant receives between <site_data> tags."""
+    return json.loads(system_text.split("<site_data>\n", 1)[1].rsplit("\n</site_data>", 1)[0])
+
+
+def test_assistant_knows_every_site_and_gets_details_for_the_one_asked_about(crew, gemini):
+    question = {"role": "user", "content": "is it safe to work at baldwin today?"}  # asked from a non-site page
+    assert crew.post("/api/chat", json={"messages": [question]}).status_code == 200
+    data = site_data(gemini.calls[0]["json"]["systemInstruction"]["parts"][0]["text"])
+    assert len(data["allSites"]) == 58
+    assert [s["name"] for s in data["siteDetails"]] == ["Turkey Point", "Baldwin"]  # your own site, then the named one
+    assert data["userSiteId"] == "turkey-point" and data["currentSiteId"] is None
+    assert {"conditions", "hazards", "activeAlerts", "lightning", "tomorrow"} <= set(data["siteDetails"][1])
+
+
+@pytest.mark.parametrize("question, expected", [
+    ("how is w.a. parish doing?", ["W.A. Parish"]),
+    ("Baldwin's crew wants to know", ["Baldwin"]),
+    ("nine mile point tomorrow?", ["Nine Mile Point"]),
+    ("compare palo verde and diablo canyon", ["Diablo Canyon", "Palo Verde"]),
+    ("is the river rising?", []),  # everyday words don't pick a site
+])
+def test_site_names_in_questions_are_recognized(app, question, expected):
+    with app.app_context():
+        found = assistant.mentioned_sites([{"role": "user", "content": question}], Site.query.all())
+        assert sorted(s.name for s in found) == expected
+
+
+def test_follow_up_questions_keep_the_site_named_earlier(app):
+    conversation = [
+        {"role": "user", "content": "how is baldwin looking?"},
+        {"role": "assistant", "content": "GO for now."},
+        {"role": "user", "content": "and tomorrow?"},
+    ]
+    with app.app_context():
+        assert [s.name for s in assistant.mentioned_sites(conversation, Site.query.all())] == ["Baldwin"]

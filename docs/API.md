@@ -18,7 +18,7 @@ Two roles and **no admin role**. Supervisors hold every management privilege.
 | Edit your own account: username, email, password, designated site | ✓ | ✓ |
 | Browse and search hazard reports; edit or delete your own | ✓ | ✓ |
 | Use the AI assistant | ✓ | ✓ |
-| PlanIt Dashboard (ranked risk map) | | ✓ |
+| PlanIt Dashboard (ranked risk map) | ✓ | ✓ |
 | Manage users, roles and designated sites | | ✓ |
 | Add, edit, pause or delete sites | | ✓ |
 | Edit alert rules and briefing settings; send briefings now | | ✓ |
@@ -42,7 +42,7 @@ Permissions are checked on the server from `current_user.role` (`supervisor_requ
 | `/register?next=/alerts` | Create a crew account at a designated site | Anyone | `GET /sites/options`, `POST /auth/register` |
 | `/account` | My account: username, email, password, designated site | Any | `GET /sites`, `PUT /users/:id` |
 | `/` | Redirect by role (crew → `/sites`, supervisor → `/dashboard`) | Any | none |
-| `/dashboard?decision=no-go` | PlanIt Dashboard | Supervisor | `GET /sites`, `GET /alerts?active=true` |
+| `/dashboard?decision=no-go` | PlanIt Dashboard | Any | `GET /sites`, `GET /alerts?active=true` |
 | `/sites?q=florida` | Site list | Any | `GET /sites` |
 | `/sites/:siteId` | Site risk picture | Any | `GET /sites/:siteId`, `/forecast`, `/lightning`, `GET /alerts?active=true&siteId=`, `GET /reports?siteId=` |
 | `/alerts?type=lightning` | Alert feed | Any | `GET /alerts?active=true`, `POST /alerts/:id/ack`, `GET /alerts/stream` |
