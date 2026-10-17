@@ -17,14 +17,29 @@ Crew reports crash/debris
  - photo
  - pin loc on map
  - share to DB for local loc for future project owners
+AI chatbot for crews and supervisors to talk to
 
-Admin account
+Supervisor account (has admin privileges; there is no separate admin)
 - ranks sites by riskiness
 - show where to focus attention/resources
 
 Backend:
- - database to store admin/worker
+ - database to store supervisor/crew
  - pull from weather APIs
  - pull from model
  - database to store incident info
  - Flask RestFUL
+
+## Project structure
+
+```
+backend/     Flask REST API (auth done; hazard endpoints planned)
+frontend/    React + Tailwind CSS web app; see frontend/README.md
+docs/        API_PLAN.md, the REST contract between frontend and backend
+```
+
+Quick start (frontend, mock data):
+
+```bash
+cd frontend && npm install && npm run dev
+```
