@@ -38,6 +38,6 @@
 # External services (no install - used over HTTPS)
 # -----------------------------------------------------------------------------
 # OpenStreetMap tile server   Base map tiles for Leaflet
-# PlanIT Control REST API      Flask backend, see ../docs/API_PLAN.md
-# Claude (Anthropic API)       AI assistant; called by the backend only (POST /api/chat),
+# PlanIT Control REST API      Flask backend, see ../docs/API.md
+# Gemini or Claude API         AI assistant; called by the backend only (POST /api/chat),
 #                              so no AI package or API key is needed in the frontend

@@ -1,0 +1,59 @@
+id,eia_plant_id,name,eia_name,state,county,lat,lng,utility,plant_type,capacity_mw,timezone,waterway
+turkey-point,621,Turkey Point,Turkey Point,FL,Miami Dade,25.4356,-80.3308,Florida Power & Light Co,Nuclear / Natural Gas,2978.4,America/New_York,Biscayne Bay
+st-lucie,6045,St. Lucie,St Lucie,FL,St Lucie,27.34861,-80.24639,Florida Power & Light Co,Nuclear,2160.0,America/New_York,Atlantic Ocean
+martin,6043,Martin,Martin,FL,Martin,27.0536,-80.5628,Florida Power & Light Co,Natural Gas,2448.5,America/New_York,
+manatee,6042,Manatee,Manatee,FL,Manatee,27.6058,-82.3456,Florida Power & Light Co,Natural Gas,2951.2,America/New_York,
+west-county-energy-center,56407,West County Energy Center,West County Energy Center,FL,Palm Beach,26.6986,-80.3747,Florida Power & Light Co,Natural Gas,4263.0,America/New_York,
+fort-myers,612,Fort Myers,Fort Myers,FL,Lee,26.6967,-81.7831,Florida Power & Light Co,Natural Gas,2680.9,America/New_York,Caloosahatchee River
+riviera-beach,619,Riviera Beach,Riviera,FL,Palm Beach,26.7653,-80.0525,Florida Power & Light Co,Natural Gas,1295.0,America/New_York,Lake Worth Lagoon
+port-everglades,617,Port Everglades,Port Everglades,FL,Broward,26.0856,-80.1253,Florida Power & Light Co,Natural Gas,1352.0,America/New_York,Port Everglades
+lauderdale,613,Lauderdale,Lauderdale,FL,Broward,26.0686,-80.1984,Florida Power & Light Co,Natural Gas,1215.9,America/New_York,
+cape-canaveral-energy-center,609,Cape Canaveral Energy Center,Cape Canaveral,FL,Brevard,28.4698,-80.7644,Florida Power & Light Co,Natural Gas,1295.0,America/New_York,Indian River
+sanford,620,Sanford,Sanford,FL,Volusia,28.8419,-81.3256,Florida Power & Light Co,Natural Gas,2377.8,America/New_York,St. Johns River
+crystal-river,628,Crystal River,Crystal River,FL,Citrus,28.9656,-82.6977,"Duke Energy Florida, LLC",Natural Gas / Coal,3449.0,America/New_York,Gulf of Mexico
+big-bend,645,Big Bend,Big Bend,FL,Hillsborough,27.7944,-82.4036,Tampa Electric Co,Natural Gas,1797.0,America/New_York,Tampa Bay
+deerhaven,663,Deerhaven,Deerhaven Generating Station,FL,Alachua,29.7592,-82.3878,Gainesville Regional Utilities,Natural Gas,471.0,America/New_York,
+grand-gulf,6072,Grand Gulf,Grand Gulf,MS,Claiborne,32.0081,-91.0478,"System Energy Resources, Inc",Nuclear,1440.0,America/Chicago,Mississippi River
+waterford-3,4270,Waterford 3,Waterford 3,LA,St Charles,29.99527,-90.47158,Entergy Louisiana LLC,Nuclear,1199.8,America/Chicago,Mississippi River
+river-bend,6462,River Bend,River Bend,LA,West Feliciana,30.757,-91.3327,Entergy Louisiana LLC,Nuclear,1035.9,America/Chicago,Mississippi River
+big-cajun-ii,6055,Big Cajun II,Big Cajun 2,LA,Pointe Coupee,30.7261,-91.3692,Louisiana Generating LLC,Coal / Natural Gas,1902.9,America/Chicago,Mississippi River
+w-a-parish,3470,W.A. Parish,W A Parish,TX,Fort Bend,29.4828,-95.6311,NRG Texas Power LLC,Coal / Natural Gas,4008.4,America/Chicago,Brazos River
+south-texas-project,6251,South Texas Project,South Texas Project,TX,Matagorda,28.795,-96.0481,STP Nuclear Operating Co,Nuclear,2708.6,America/Chicago,Colorado River (TX)
+labadie,2103,Labadie,Labadie,MO,Franklin,38.56224,-90.83769,Union Electric Co - (MO),Coal,2389.4,America/Chicago,Missouri River
+sioux,2107,Sioux,Sioux,MO,St Charles,38.91548,-90.29025,Union Electric Co - (MO),Coal,1099.4,America/Chicago,Mississippi River
+baldwin,889,Baldwin,Baldwin Energy Complex,IL,Randolph,38.205,-89.8544,Dynegy Midwest Generation Inc,Coal,1259.6,America/Chicago,Kaskaskia River
+quad-cities,880,Quad Cities,Quad Cities Generating Station,IL,Rock Island,41.72611,-90.31028,Constellation Nuclear,Nuclear,2018.6,America/Chicago,Mississippi River
+prairie-island,1925,Prairie Island,Prairie Island,MN,Goodhue,44.622,-92.6333,Northern States Power Co - Minnesota,Nuclear,1186.2,America/Chicago,Mississippi River
+louisa,6664,Louisa,Louisa,IA,Louisa,41.3181,-91.0931,MidAmerican Energy Co,Coal,811.9,America/Chicago,Mississippi River
+gibson,6113,Gibson,Gibson,IN,Gibson,38.37222,-87.76583,"Duke Energy Indiana, LLC",Coal,3339.5,America/Chicago,Wabash River
+browns-ferry,46,Browns Ferry,Browns Ferry,AL,Limestone,34.7042,-87.1189,Tennessee Valley Authority,Nuclear,3854.0,America/Chicago,Tennessee River
+cumberland,3399,Cumberland,Cumberland (TN),TN,Stewart,36.3903,-87.6539,Tennessee Valley Authority,Coal,2600.0,America/Chicago,Cumberland River
+watts-bar,7722,Watts Bar,Watts Bar Nuclear Plant,TN,Rhea,35.6021,-84.7895,Tennessee Valley Authority,Nuclear,2539.8,America/New_York,Tennessee River
+vogtle,649,Vogtle,Vogtle,GA,Burke,33.1427,-81.7625,Georgia Power Co,Nuclear,4658.0,America/New_York,Savannah River
+scherer,6257,Scherer,Scherer,GA,Monroe,33.0606,-83.8075,Georgia Power Co,Coal,2673.0,America/New_York,
+bowen,703,Bowen,Bowen,GA,Bartow,34.1256,-84.9222,Georgia Power Co,Coal,3498.6,America/New_York,Etowah River
+oconee,3265,Oconee,Oconee,SC,Oconee,34.7939,-82.8986,"Duke Energy Carolinas, LLC",Nuclear,2666.7,America/New_York,Lake Keowee
+catawba,6036,Catawba,Catawba,SC,York,35.0514,-81.0694,"Duke Energy Carolinas, LLC",Nuclear,2410.2,America/New_York,Lake Wylie
+mcguire,6038,McGuire,McGuire,NC,Mecklenburg,35.4331,-80.9486,"Duke Energy Carolinas, LLC",Nuclear,2440.6,America/New_York,Lake Norman
+north-anna,6168,North Anna,North Anna,VA,Louisa,38.06,-77.7897,Virginia Electric & Power Co,Nuclear,1960.4,America/New_York,Lake Anna
+calvert-cliffs,6011,Calvert Cliffs,Calvert Cliffs Nuclear Power Plant,MD,Calvert,38.4344,-76.4417,Constellation Nuclear,Nuclear,1850.4,America/New_York,Chesapeake Bay
+peach-bottom,3166,Peach Bottom,Peach Bottom,PA,York,39.75894,-76.26874,Constellation Nuclear,Nuclear,2876.4,America/New_York,Susquehanna River
+limerick,6105,Limerick,Limerick,PA,Montgomery,40.2243,-75.58744,Constellation Nuclear,Nuclear,2277.0,America/New_York,Schuylkill River
+susquehanna,6103,Susquehanna,TalenEnergy Susquehanna,PA,Luzerne,41.0919,-76.1462,TalenEnergy Susquehanna LLC,Nuclear,2532.0,America/New_York,Susquehanna River
+millstone,566,Millstone,Millstone,CT,New London,41.3107,-72.1677,Dominion Energy Nuclear Conn Inc,Nuclear,2259.9,America/New_York,Long Island Sound
+seabrook,6115,Seabrook,Seabrook,NH,Rockingham,42.89917,-70.84889,NextEra Energy Seabrook LLC,Nuclear,1242.0,America/New_York,Atlantic Ocean
+nine-mile-point,2589,Nine Mile Point,Nine Mile Point Nuclear Station,NY,Oswego,43.5211,-76.41,Constellation Nuclear,Nuclear,1901.1,America/New_York,Lake Ontario
+robert-moses-niagara,2693,Robert Moses Niagara,Robert Moses Niagara,NY,Niagara,43.1427,-79.0394,New York Power Authority,Hydro,2429.1,America/New_York,Niagara River
+fermi-2,1729,Fermi 2,Fermi,MI,Monroe,41.9631,-83.2581,DTE Electric Company,Nuclear,1281.0,America/New_York,Lake Erie
+byron,6023,Byron,Byron Generating Station,IL,Ogle,42.0742,-89.2819,Constellation Nuclear,Nuclear,2449.8,America/Chicago,Rock River
+braidwood,6022,Braidwood,Braidwood Generation Station,IL,Will,41.2435,-88.2286,Constellation Nuclear,Nuclear,2449.8,America/Chicago,Kankakee River
+wolf-creek,210,Wolf Creek,Wolf Creek Generating Station,KS,Coffey,38.23926,-95.68978,Wolf Creek Nuclear Optg Corp,Nuclear,1296.3,America/Chicago,
+comanche-peak,6145,Comanche Peak,Comanche Peak,TX,Somervell,32.29836,-97.78552,Luminant Generation Company LLC,Nuclear,2430.0,America/Chicago,Squaw Creek Reservoir
+palo-verde,6008,Palo Verde,Palo Verde,AZ,Maricopa,33.3881,-112.8617,Arizona Public Service Co,Nuclear,4209.6,America/Phoenix,
+four-corners,2442,Four Corners,Four Corners,NM,San Juan,36.69,-108.4814,Arizona Public Service Co,Coal,1636.2,America/Denver,Morgan Lake
+hoover-dam,154,Hoover Dam,Hoover Dam (NV),NV,Clark,36.01551,-114.738,U S Bureau of Reclamation,Hydro,1039.4,America/Los_Angeles,Colorado River
+intermountain,6481,Intermountain,Intermountain Power Project,UT,Millard,39.50973,-112.5802,Los Angeles Department of Water & Power,Natural Gas,1093.2,America/Denver,
+colstrip,6076,Colstrip,Colstrip,MT,Rosebud,45.8831,-106.614,Talen Montana LLC,Coal,1647.4,America/Denver,
+diablo-canyon,6099,Diablo Canyon,Diablo Canyon,CA,San Luis Obispo,35.21154,-120.8555,Pacific Gas & Electric Co.,Nuclear,2323.0,America/Los_Angeles,Pacific Ocean
+grand-coulee,6163,Grand Coulee,Grand Coulee,WA,Grant,47.95751,-118.9773,U S Bureau of Reclamation,Hydro,6809.0,America/Los_Angeles,Columbia River
+columbia-generating-station,371,Columbia Generating Station,Columbia Generating Station,WA,Benton,46.4711,-119.3339,Energy Northwest- Columbia,Nuclear,1200.0,America/Los_Angeles,Columbia River

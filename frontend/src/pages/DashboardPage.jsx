@@ -1,5 +1,5 @@
-// Supervisor PlanIt Dashboard: a map plus a ranked list showing which sites
-// need attention and resources first. Filter lives in the URL:
+// PlanIt Dashboard (crew and supervisors): a map plus a ranked list showing
+// which sites need attention and resources first. Filter lives in the URL:
 // /dashboard?decision=no-go
 import { useMemo, useState } from 'react';
 import { useQueryParam } from '../hooks/useQueryParam.js';
@@ -45,7 +45,7 @@ export default function DashboardPage() {
     <>
       <PageHeader
         title="PlanIt Dashboard"
-        subtitle={`${all.length} monitored sites, ranked by ML hazard index (0-10)`}
+        subtitle={`${all.length} monitored sites, ranked by hazard index (0-10)`}
         actions={
           <select className="input w-auto" value={filter} onChange={(e) => setFilter(e.target.value)}>
             <option value="all">All sites</option>

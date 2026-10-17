@@ -1,17 +1,19 @@
 // Route table. All paths come from src/routes.js. There are two roles:
-//   crew        -> sites, alerts, hazard reporting, briefings, AI assistant
-//   supervisor  -> everything crew can do, plus the PlanIt Dashboard and the
-//                  Manage panel (/manage/<tab>). Supervisors hold all
-//                  management privileges; there is no separate admin.
+//   crew        -> PlanIt Dashboard, sites, alerts, hazard reporting, briefings, AI assistant
+//   supervisor  -> everything crew can do, plus the Manage panel (/manage/<tab>).
+//                  Supervisors hold all management privileges; there is no separate admin.
 import { Navigate, Route, Routes } from 'react-router-dom';
 import Layout from './components/layout/Layout.jsx';
 import ProtectedRoute from './components/layout/ProtectedRoute.jsx';
 import LoginPage from './pages/LoginPage.jsx';
+import RegisterPage from './pages/RegisterPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import SitesPage from './pages/SitesPage.jsx';
 import SiteDetailPage from './pages/SiteDetailPage.jsx';
 import AlertsPage from './pages/AlertsPage.jsx';
 import ReportHazardPage from './pages/ReportHazardPage.jsx';
+import HazardReportsPage from './pages/HazardReportsPage.jsx';
+import AccountPage from './pages/AccountPage.jsx';
 import BriefingsPage from './pages/BriefingsPage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
 import ManagePage from './pages/manage/ManagePage.jsx';
@@ -29,20 +31,23 @@ export default function App() {
   return (
     <Routes>
       <Route path={PATHS.login} element={<LoginPage />} />
+      <Route path={PATHS.register} element={<RegisterPage />} />
 
       {/* Everything below requires a signed-in user */}
       <Route element={<ProtectedRoute />}>
         <Route element={<Layout />}>
           <Route path={PATHS.home} element={<HomeRedirect />} />
+          <Route path={PATHS.dashboard} element={<DashboardPage />} />
           <Route path={PATHS.sites} element={<SitesPage />} />
           <Route path={PATHS.siteDetail} element={<SiteDetailPage />} />
           <Route path={PATHS.alerts} element={<AlertsPage />} />
+          <Route path={PATHS.reports} element={<HazardReportsPage />} />
           <Route path={PATHS.newReport} element={<ReportHazardPage />} />
           <Route path={PATHS.briefings} element={<BriefingsPage />} />
+          <Route path={PATHS.account} element={<AccountPage />} />
 
-          {/* Supervisor only: PlanIt Dashboard + Manage panel (/manage -> /manage/overview) */}
+          {/* Supervisor only: the Manage panel (/manage -> /manage/overview) */}
           <Route element={<ProtectedRoute roles={[ROLES.SUPERVISOR]} />}>
-            <Route path={PATHS.dashboard} element={<DashboardPage />} />
             <Route path={PATHS.manage} element={<Navigate to={urls.manage()} replace />} />
             <Route path={PATHS.manageTab} element={<ManagePage />} />
           </Route>
