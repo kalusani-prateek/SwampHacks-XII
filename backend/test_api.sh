@@ -34,7 +34,7 @@ fi
 
 # 2. Make user1 an admin via direct DB update using Python (since sqlite3 may not be installed)
 echo "2. Making user1 an admin via SQL..."
-python3 -c "
+python -c "
 import sqlite3
 try:
     conn = sqlite3.connect('$DB_PATH')
@@ -283,7 +283,7 @@ fi
 
 # 19. Delete the site (as admin)
 echo "19. Deleting site..."
-DELETE_SITE_RESPONSE=$(curl -s -w "\n%{http_code}" -b admin_cookie.txt -X DELETE "$API_BASE/api/sites/$SITE_ID")
+DELETE_SITE_RESPONSE=$(curl -s -w "\n%{http_code}" -b admin_cookie.txt -X DELETE "$API_BASE/api/admins/sites/$SITE_ID")
 DELETE_SITE_BODY=$(echo "$DELETE_SITE_RESPONSE" | sed '$d')
 DELETE_SITE_CODE=$(echo "$DELETE_SITE_RESPONSE" | tail -n1)
 if echo "$DELETE_SITE_BODY" | grep -q '"message":"Site deleted"' && [ "$DELETE_SITE_CODE" -eq 200 ]; then
