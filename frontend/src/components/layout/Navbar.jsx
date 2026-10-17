@@ -16,7 +16,7 @@ import { notificationsSupported } from '../../hooks/useAlertNotifications.js';
 // section for every page inside it, e.g. "Manage" on /manage/users.
 // `end` = highlight only on that exact path (/reports, not /reports/new).
 const LINKS = [
-  { to: PATHS.dashboard, label: 'Dashboard', roles: [ROLES.SUPERVISOR] },
+  { to: PATHS.dashboard, label: 'Dashboard' },
   { to: PATHS.sites, label: 'Sites' },
   { to: PATHS.alerts, label: 'Alerts', showAlertCount: true },
   { to: PATHS.reports, label: 'Reports', end: true },

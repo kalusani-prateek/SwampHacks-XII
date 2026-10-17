@@ -1,5 +1,5 @@
-// Supervisor PlanIt Dashboard: a map plus a ranked list showing which sites
-// need attention and resources first. Filter lives in the URL:
+// PlanIt Dashboard (crew and supervisors): a map plus a ranked list showing
+// which sites need attention and resources first. Filter lives in the URL:
 // /dashboard?decision=no-go
 import { useMemo, useState } from 'react';
 import { useQueryParam } from '../hooks/useQueryParam.js';
