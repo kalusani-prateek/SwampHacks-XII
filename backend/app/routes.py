@@ -3,6 +3,8 @@ from app import db, bcrypt
 from app.models import User
 from flask_login import login_user, logout_user, login_required, current_user
 
+# Session management is handled by Flask-Login, which stores session data in a signed cookie.
+# The client must send this cookie back with subsequent requests to maintain the session.
 # Blueprints
 auth_bp = Blueprint('auth', __name__)
 user_bp = Blueprint('user', __name__)
@@ -58,6 +60,7 @@ def login():
     user = User.query.filter_by(username=username).first()
 
     if user and user.check_password(password):
+        # login_user sets the session cookie in the response
         login_user(user)
         return make_response(jsonify({'message': 'Logged in successfully'}), 200)
     else:
@@ -66,6 +69,7 @@ def login():
 @auth_bp.route('/logout', methods=['POST'])
 @login_required
 def logout():
+    # logout_user clears the session cookie
     logout_user()
     return make_response(jsonify({'message': 'Logged out successfully'}), 200)
 
