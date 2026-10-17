@@ -51,9 +51,11 @@ def create_app(config_class=Config):
         return jsonify({'message': 'Internal server error'}), 500
 
     # Register blueprints
-    from app.routes import auth_bp, user_bp, admin_bp
+    from app.routes import auth_bp, user_bp, admin_bp, site_bp, incident_bp
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(user_bp, url_prefix='/api/users')
     app.register_blueprint(admin_bp, url_prefix='/api/admins')
 
+    app.register_blueprint(site_bp, url_prefix='/api/sites')
+    app.register_blueprint(incident_bp, url_prefix='/api/incidents')
     return app
