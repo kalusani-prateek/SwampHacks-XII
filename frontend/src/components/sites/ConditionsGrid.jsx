@@ -18,6 +18,7 @@ const READINGS = [
   { key: 'wildlifeSightings30d', label: 'Wildlife sightings (30 d)', unit: '' },
   { key: 'nwsAlerts', label: 'NWS alerts in effect', unit: '' },
   { key: 'fireWeatherIndex', label: 'Fire weather idx', unit: '' },
+  { key: 'modelRiskPct', label: 'ML model risk today', unit: '%' },
 ];
 
 export default function ConditionsGrid({ conditions }) {

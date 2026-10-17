@@ -81,7 +81,7 @@ export default function SiteDetailPage() {
             </ul>
             <p className="mt-3 text-xs text-slate-400">
               {site.updatedAt ? `Updated ${timeAgo(site.updatedAt)}` : 'Waiting for the first data refresh'}
-              {/* Which method produced the score (rule-based today; an ML model can replace it) */}
+              {/* Which method produced the score (ML model plus safety rules, or rules alone if no model is fitted) */}
               {site.scoring?.label && <span className="block">{site.scoring.label}</span>}
               {site.eiaPlantId && <span className="block">EIA plant ID {site.eiaPlantId}</span>}
             </p>

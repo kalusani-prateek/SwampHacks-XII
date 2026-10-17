@@ -32,7 +32,7 @@ Backend:
 
 ## PlanIT Control
 
-Real-time hazard monitoring for utility field crews at 58 real power-plant job sites (from EIA-860M). It combines live weather, NWS warnings, river gauges, satellite fire detections, wildlife sightings and NOAA GOES satellite lightning into one 0-10 hazard index per site. It also raises stop-work alerts (10-mile / 30-minute lightning rule, flood, heat, wind), sends 6 PM next-day briefings, takes crew hazard reports with photos, and answers questions through an AI assistant (Gemini or Claude).
+Real-time hazard monitoring for utility field crews at 58 real power-plant job sites (from EIA-860M). It combines live weather, NWS warnings, river gauges, satellite fire detections, wildlife sightings and NOAA GOES satellite lightning into one 0-10 hazard index per site, scored by an ML model fitted on NOAA storm history plus safety rules. It also raises stop-work alerts (10-mile / 30-minute lightning rule, flood, heat, wind), sends 6 PM next-day briefings, takes crew hazard reports with photos, and answers questions through an AI assistant (Gemini or Claude).
 
 ```
 backend/     Flask REST API, background data jobs, tests   (backend/README.md)
@@ -62,6 +62,6 @@ On Windows PowerShell, use `npm.cmd` if `npm` is blocked by the script policy.
 ## Tests
 
 ```bash
-cd backend && .venv\Scripts\python -m pytest     # 72 API, scoring, alert, assistant and startup tests
+cd backend && .venv\Scripts\python -m pytest     # 82 API, scoring, ML, alert, assistant and startup tests
 cd frontend && npm test                          # URL, hazard-band and demo-assistant tests
 ```

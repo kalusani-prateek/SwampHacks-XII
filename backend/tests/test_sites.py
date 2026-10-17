@@ -1,4 +1,5 @@
 """Job sites: seeded from EIA-860M, readable slugs, supervisor management."""
+from app.services import hazard_model
 
 
 def test_all_58_eia_sites_are_seeded(crew):
@@ -8,7 +9,8 @@ def test_all_58_eia_sites_are_seeded(crew):
     assert turkey["eiaPlantId"] == 621
     assert turkey["utility"] == "Florida Power & Light Co"
     assert set(turkey["hazards"]) == {"heat", "lightning", "flooding", "wildfire", "soil", "wildlife", "wind"}
-    assert turkey["scoring"]["method"] == "rule-based"
+    # The ML model joins the rules once ml/hazard_model.json has been fitted.
+    assert turkey["scoring"]["method"] == ("ml+rules" if hazard_model.MODEL else "rule-based")
 
 
 def test_unknown_or_malformed_site_ids_404(crew):

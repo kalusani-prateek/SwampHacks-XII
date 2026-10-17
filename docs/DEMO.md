@@ -22,7 +22,7 @@ The brief's 6:45 AM scene: heat, storms, mud and a gator, all knowable ahead of 
 ## 3. One site's risk picture (60 s)
 
 1. Open the top-ranked site.
-2. Show the **hazard index** and its plain-language reasons, the seven hazard bars, current conditions, the 7-day forecast, and the scoring label (rule-based, with the formula documented in `docs/API.md`).
+2. Show the **hazard index** and its plain-language reasons, the seven hazard bars, current conditions, the 7-day forecast, and the scoring label: an ML model fitted on three years of NOAA storm reports, plus safety rules it can raise but never lower (method and accuracy in `docs/API.md`). **ML model risk today** in the conditions grid is the model's own estimate.
 
 ## 4. Lightning stop-work (60 s)
 
@@ -45,5 +45,5 @@ The brief's 6:45 AM scene: heat, storms, mud and a gator, all knowable ahead of 
 ## Closing points
 
 - Two roles: supervisors hold all management privileges; there is no separate admin.
-- Transparent, documented scoring today, with a slot for the ML model once its training data is settled.
+- ML scoring learned from three years of NOAA storm reports at these 58 sites and checked on a year it never saw, with the safety rules as a floor.
 - Works offline with the last saved data (production build), and sends browser notifications for new alerts.

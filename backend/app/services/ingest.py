@@ -69,8 +69,8 @@ def rescore(sites):
             active = alert_engine.active_by_site([s.id for s in sites])
             results = []
             for site in sites:
-                readings = {"waterway": site.waterway, "weather": site.weather, "nws": site.nws,
-                            "river": site.river, "fire": site.fire, "wildlife": site.wildlife}
+                readings = {"waterway": site.waterway, "lat": site.lat, "lng": site.lng, "weather": site.weather,
+                            "nws": site.nws, "river": site.river, "fire": site.fire, "wildlife": site.wildlife}
                 scored = score_site(readings, recent_strikes(site.id, now), crew_wildlife_reports(site.id, now), rules, now)
                 results.append((site, scored))
         for site, scored in results:

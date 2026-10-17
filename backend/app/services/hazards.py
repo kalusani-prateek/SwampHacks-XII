@@ -4,16 +4,30 @@ Turns a site's latest readings (weather, NWS alerts, lightning, river gauge,
 fires, wildlife) into seven 0-10 hazard scores, one hazard index, short
 plain-language "drivers" and a 7-day forecast.
 
-Method: transparent rule-based scoring. Each hazard maps a measured value onto
-0-10 with the breakpoints below (NWS heat-index categories, the brief's
-10-mile / 30-minute lightning rule, common crane wind limits). Official NWS
-warnings set a minimum score. A trained ML model can later replace combine();
-SCORING tells the UI which method produced the numbers.
+Method: each hazard maps a measured value onto 0-10 with the breakpoints below
+(NWS heat-index categories, the brief's 10-mile / 30-minute lightning rule,
+common crane wind limits), and official NWS warnings set minimum scores. When
+ml/hazard_model.json exists, the ML hazard model (hazard_model.py) also
+estimates the chance of a reported storm, flood, heat or wind event near the
+site from the day's weather. The index is the higher of the two, so the model
+can raise the index but never lower what the safety rules require. SCORING
+tells the UI which method produced the numbers.
 """
 from datetime import timedelta
 
+from . import hazard_model
+
 HAZARD_KEYS = ["heat", "lightning", "flooding", "wildfire", "soil", "wildlife", "wind"]
-SCORING = {"method": "rule-based", "label": "Rule-based scoring of live conditions (ML model pending)"}
+if hazard_model.MODEL:
+    _check = hazard_model.MODEL.get("check", {})
+    SCORING = {
+        "method": "ml+rules",
+        "label": "ML model (NOAA storm history) plus safety rules",
+        "model": {"fittedAt": hazard_model.MODEL.get("fittedAt"), "years": hazard_model.MODEL.get("data", {}).get("years"),
+                  "auc": _check.get("auc"), "rulesAuc": _check.get("rulesAuc")},
+    }
+else:
+    SCORING = {"method": "rule-based", "label": "Rule-based scoring of live conditions (ML model not fitted)"}
 
 LABELS = {
     "heat": "Extreme heat",
@@ -228,6 +242,15 @@ def score_site(site, strikes, crew_wildlife_reports, rules, now):
     hazards = {key: round(hazards[key], 1) for key in HAZARD_KEYS}
     hazard_index = round(max(combine(hazards), index_floor), 1)
 
+    # ML model: chance of a reported hazardous event near the site today. The higher index wins.
+    risk = _model_risk(weather.get("daily") or [], weather.get("todayIndex", 0), site)
+    if risk:
+        probability, factor = risk
+        model_index = round(10 * probability, 1)
+        if model_index >= 5 or (model_index > hazard_index and model_index > 2.5):
+            drivers.append((model_index * 5, _model_driver(probability, factor)))
+        hazard_index = max(hazard_index, model_index)
+
     shown, seen = [], set()
     for _priority, text in sorted(drivers, key=lambda d: d[0], reverse=True):
         if text not in seen:
@@ -249,6 +272,7 @@ def score_site(site, strikes, crew_wildlife_reports, rules, now):
         "nearestFireMiles": _round(nearest_fire, 0) if nearest_fire is not None and nearest_fire <= 100 else None,
         "wildlifeSightings30d": sightings,
         "nwsAlerts": len(nws_alerts),
+        "modelRiskPct": round(risk[0] * 100) if risk else None,
     }
     conditions = {key: value for key, value in conditions.items() if value is not None}
 
@@ -257,7 +281,7 @@ def score_site(site, strikes, crew_wildlife_reports, rules, now):
         "hazardIndex": hazard_index,
         "drivers": drivers_out,
         "conditions": conditions,
-        "forecast": forecast_days(weather, hazards, waterway),
+        "forecast": forecast_days(weather, hazards, waterway, site),
         "lightning": bolt,
         "readings": {
             "heatIndexF": heat_index,
@@ -276,8 +300,23 @@ def _today(weather):
     return daily[index] if 0 <= index < len(daily) else {}
 
 
-def forecast_days(weather, hazards_now, waterway, days=7):
-    """Score each of the next `days` days from the daily forecast (dates are site-local)."""
+def _model_risk(daily, i, site):
+    """The ML model's (probability, main factor) for daily[i] at this site, or None."""
+    if not site or not 0 <= i < len(daily):
+        return None
+    features = hazard_model.day_features(daily[i], daily[max(0, i - 3):i], site.get("lat"), site.get("lng"))
+    return hazard_model.predict(features)
+
+
+def _model_driver(probability, factor):
+    reason = f", mainly {LABELS[factor].lower()}" if factor else ""
+    return f"Hazard model: {probability:.0%} chance of a reported storm, flood, heat or wind event nearby{reason}"
+
+
+def forecast_days(weather, hazards_now, waterway, site=None, days=7):
+    """Score each of the next `days` days from the daily forecast (dates are site-local).
+
+    site (with "lat"/"lng") lets the ML model score each day too; the higher index wins."""
     daily = weather.get("daily") or []
     start = weather.get("todayIndex", 0) + 1
     out = []
@@ -294,10 +333,14 @@ def forecast_days(weather, hazards_now, waterway, days=7):
             "wildlife": hazards_now.get("wildlife", 0),
         }
         scores = {key: round(scores[key], 1) for key in HAZARD_KEYS}
+        index, top = combine(scores), max(scores, key=scores.get)
+        risk = _model_risk(daily, start + offset - 1, site)
+        if risk and round(10 * risk[0], 1) > index:
+            index, top = round(10 * risk[0], 1), risk[1] or top
         out.append({
             "date": day["date"],
-            "hazardIndex": combine(scores),
-            "topHazard": max(scores, key=scores.get),
+            "hazardIndex": index,
+            "topHazard": top,
             "hazards": scores,
         })
     return out

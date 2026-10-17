@@ -42,7 +42,8 @@ Settings come from environment variables or `backend/.env`; [`.env.example`](.en
 ## Commands
 
 ```bash
-.venv\Scripts\python -m pytest                                   # 60 tests, no network needed
+.venv\Scripts\python -m pytest                                   # all tests, no network needed
+.venv\Scripts\python -m ml.fit_hazard_model                      # refit the ML hazard model (~10 min the first time)
 .venv\Scripts\flask --app run refresh                            # pull every data source once
 .venv\Scripts\flask --app run briefings                          # send tomorrow's briefings now
 .venv\Scripts\flask --app run create-supervisor                  # add a supervisor (use in production)
@@ -63,7 +64,7 @@ Background jobs (app/jobs.py)                      REST API (app/api/)
   briefings  every 5 min: 6 PM site-local ─► services/briefings.py ─► services/notify.py
 ```
 
-- **Scoring** (`services/hazards.py`): rule-based and documented in [`../docs/API.md`](../docs/API.md#how-scores-are-computed). Every site response carries `scoring.method` (`rule-based`); the ML model is paused until its training data is settled and can replace `combine()` later.
+- **Scoring** (`services/hazards.py`): safety rules plus the ML hazard model (`services/hazard_model.py`); the index is the higher of the two. Documented in [`../docs/API.md`](../docs/API.md#how-scores-are-computed). Every site response carries `scoring.method` (`ml+rules`, or `rule-based` if the model file is missing).
 - **Alerts** (`services/alert_engine.py`): one active alert per site and rule; lightning alerts clear themselves 30 minutes after the last strike within 10 miles.
 - **Writes** go through one lock (`services/ingest.py`) with SQLite in WAL mode; reads happen first, so write transactions stay short.
 
@@ -76,6 +77,7 @@ backend/
 ├── requirements.txt
 ├── data/sites.csv          the 58 job sites (from EIA-860M)
 ├── scripts/build_sites.py  rebuilds data/sites.csv
+├── ml/                     fit_hazard_model.py (fits the ML model) and hazard_model.json (the fitted model)
 ├── app/
 │   ├── __init__.py         create_app(), error handlers
 │   ├── models.py           User, Site, LightningStrike, Alert, AlertAck, HazardReport,

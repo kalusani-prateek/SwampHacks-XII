@@ -101,10 +101,12 @@ Permissions are checked on the server from `current_user.role` (`supervisor_requ
   "hazards": { "heat": 3.8, "lightning": 0.6, "flooding": 0, "wildfire": 0, "soil": 1.0, "wildlife": 3, "wind": 0.8 },
   "conditions": { "tempF": 86, "heatIndexF": 96, "humidityPct": 70, "windMph": 9, "windGustMph": 14,
                   "precip24hIn": 0, "soilMoisturePct": 20, "lightningStrikes1h": 0, "riverStageFt": 0.3,
-                  "riverChange24hFt": 0, "nearestFireMiles": 61, "wildlifeSightings30d": 2, "nwsAlerts": 1 },
+                  "riverChange24hFt": 0, "nearestFireMiles": 61, "wildlifeSightings30d": 2, "nwsAlerts": 1,
+                  "modelRiskPct": 12 },   // the ML model's chance of a reported hazardous event nearby today
   "drivers": ["Heat index up to 97°F in the next 12 h", "..."],   // plain-language reasons
   "updatedAt": "2026-10-17T16:05:00Z",
-  "scoring": { "method": "rule-based", "label": "Rule-based scoring of live conditions (ML model pending)" }
+  "scoring": { "method": "ml+rules", "label": "ML model (NOAA storm history) plus safety rules",
+               "model": { "fittedAt": "2026-10-17T18:03:41Z", "years": [2023, 2024, 2025], "auc": 0.854, "rulesAuc": 0.757 } }
 }
 ```
 
@@ -179,7 +181,7 @@ Implemented in `backend/app/services/assistant.py`. The server validates the con
 
 ## How scores are computed
 
-`backend/app/services/hazards.py` uses transparent rule-based scoring. Each hazard maps a measured value onto 0-10 (values in between are interpolated):
+`backend/app/services/hazards.py` scores each hazard with transparent rules, and an ML model (below) adds an estimate learned from NOAA storm history. Each hazard maps a measured value onto 0-10 (values in between are interpolated):
 
 | Hazard | Input | Breakpoints (value → score) |
 |---|---|---|
@@ -193,7 +195,9 @@ Implemented in `backend/app/services/assistant.py`. The server validates the con
 
 Official NWS alerts set minimum scores (e.g. Tornado Warning 10, Flash Flood Warning 8.5, Severe Thunderstorm Warning 8, Extreme Heat Warning 8, Heat Advisory 6). The **hazard index** is `0.6 × worst + 0.25 × second + 0.15 × average`, never below an active stop-work (8) or NWS minimum. Bands: ≤2.5 Low (GO), ≤5 Moderate (GO), ≤7.5 High (CAUTION), above 7.5 Extreme (NO-GO). The 7-day forecast applies the same breakpoints to Open-Meteo's daily forecast.
 
-**ML model status:** paused until the training data is settled. A trained model can replace `combine()` / `score_site()`; the `scoring` field in every site tells the UI which method produced the numbers.
+**ML hazard model** (`services/hazard_model.py`, fitted by `ml/fit_hazard_model.py`): a logistic regression that estimates the chance that NOAA's [Storm Events database](https://www.ncdc.noaa.gov/stormevents/) records a thunderstorm-wind, lightning, hail, tornado, flood, heat, high-wind, tropical-storm or wildfire event within 25 miles of the site, or in its NWS forecast zone or county, on a given day. Its inputs are that day's weather, taken from the same Open-Meteo daily values the forecast provides (highest heat index, rain and hours of rain, rain over the previous 3 days, strongest gust and wind, lowest humidity), plus the time of year and the site's location. It was fitted on 2023-2025 at the 58 sites (63,568 site-days, 4.3% of them with a qualifying report). Fitted on 2023-2024 and checked on 2025, it ranked hazardous days above calm ones 85% of the time (ROC AUC 0.854), against 76% (0.757) for the rule-based index on the same weather, and its probabilities beat always guessing the average (Brier score 0.032 vs 0.036). The coefficients and these checks are in `ml/hazard_model.json`.
+
+The model's index is 10 × that chance (so 7.5, the NO-GO line, means a 75% chance of a reported event nearby). The site's **hazard index is the higher of the model and the rules**, so the model can raise the index but never lower what a stop-work, an NWS warning or another rule requires. The 7-day forecast and the 6 PM briefings use the same combination, and **ML model risk today** (`conditions.modelRiskPct`) shows the model's own estimate. Refit with `python -m ml.fit_hazard_model` from `backend/` (it writes `ml/hazard_model.json`); without that file, scoring falls back to the rules alone and `scoring.method` is `rule-based`.
 
 ## Alert rules
 

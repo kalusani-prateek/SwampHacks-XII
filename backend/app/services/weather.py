@@ -28,7 +28,7 @@ def fetch_all(sites, api_key=""):
         "current": ",".join(CURRENT),
         "hourly": ",".join(HOURLY),
         "daily": ",".join(DAILY),
-        "past_days": 1,
+        "past_days": 3,  # the ML hazard model looks at the last 3 days of rain
         "forecast_days": 8,
         "temperature_unit": "fahrenheit",
         "wind_speed_unit": "mph",
