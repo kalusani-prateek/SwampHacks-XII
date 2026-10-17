@@ -150,6 +150,18 @@ def delete_user(user_id):
 
     return make_response(jsonify({'message': 'User deleted successfully'}), 200)
 
+
+@user_bp.route('/me', methods=['GET'])
+@login_required
+def get_current_user():
+    # Return current user's data
+    return make_response(jsonify({
+        'id': current_user.id,
+        'username': current_user.username,
+        'email': current_user.email,
+        'is_admin': current_user.is_admin
+    }), 200)
+
 # Admin routes
 @admin_bp.route('/users', methods=['GET'])
 @login_required
