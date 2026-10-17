@@ -1,0 +1,44 @@
+/* Tailwind CSS v4 entry point. */
+@import 'tailwindcss';
+
+/* Brand tokens -> usable as Tailwind utilities, e.g. bg-brand, text-navy-900. */
+@theme {
+  --color-brand: #e8590c; /* PlanIT "Control" orange */
+  --color-brand-dark: #c2410c;
+  --color-navy-900: #111827;
+  --color-navy-800: #1b2440; /* PlanIT navy */
+  --color-navy-700: #26324f;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Reusable component classes so pages stay readable. Defined with @utility
+   (Tailwind v4) so they can be composed with @apply and overridden by
+   regular utilities, e.g. class="btn-secondary px-2 text-xs". */
+@utility card {
+  @apply rounded-xl border border-slate-200 bg-white p-4 shadow-sm;
+}
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50;
+}
+@utility btn-primary {
+  @apply btn bg-brand text-white hover:bg-brand-dark;
+}
+@utility btn-secondary {
+  @apply btn border border-slate-300 bg-white text-slate-700 hover:bg-slate-50;
+}
+@utility btn-danger {
+  @apply btn bg-red-600 text-white hover:bg-red-700;
+}
+@utility input {
+  @apply w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand focus:ring-2 focus:ring-brand/30 focus:outline-none;
+}
+@utility label {
+  @apply mb-1 block text-xs font-semibold tracking-wide text-slate-500 uppercase;
+}
+
+/* Leaflet containers need an explicit height and should sit below modals. */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  z-index: 0;
+}
