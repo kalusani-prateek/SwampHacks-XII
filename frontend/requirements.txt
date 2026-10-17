@@ -1,0 +1,43 @@
+# =============================================================================
+# PlanIT Control - Frontend requirements
+# =============================================================================
+# The frontend is a JavaScript project, so packages are installed with npm
+# (exact versions are pinned in package.json / package-lock.json):
+#
+#     cd frontend
+#     npm install
+#     npm run dev        # http://localhost:5173
+#
+# Every line in this file is a comment, so `pip install -r` on it is a no-op.
+# Python dependencies for the REST API live in ../backend/requirements.txt.
+#
+# -----------------------------------------------------------------------------
+# System prerequisites
+# -----------------------------------------------------------------------------
+# node >= 20.19          (JavaScript runtime required by Vite 6)
+# npm  >= 10             (package manager, ships with Node)
+#
+# -----------------------------------------------------------------------------
+# Runtime dependencies
+# -----------------------------------------------------------------------------
+# react            ^19.1   UI library
+# react-dom        ^19.1   React renderer for the browser
+# react-router-dom ^7.6    Client-side routing (crew pages + supervisor Manage panel)
+# leaflet          ^1.9.4  Interactive maps (site map, hazard pinning)
+# react-leaflet    ^5.0    React bindings for Leaflet
+#
+# -----------------------------------------------------------------------------
+# Build / dev dependencies
+# -----------------------------------------------------------------------------
+# vite              ^6.3   Dev server + bundler
+# @vitejs/plugin-react ^4.5 JSX / fast refresh for Vite
+# tailwindcss       ^4.1   Utility-first CSS framework (the UI library)
+# @tailwindcss/vite ^4.1   Tailwind CSS v4 Vite plugin
+#
+# -----------------------------------------------------------------------------
+# External services (no install - used over HTTPS)
+# -----------------------------------------------------------------------------
+# OpenStreetMap tile server   Base map tiles for Leaflet
+# PlanIT Control REST API      Flask backend, see ../docs/API_PLAN.md
+# Claude (Anthropic API)       AI assistant; called by the backend only (POST /api/chat),
+#                              so no AI package or API key is needed in the frontend
