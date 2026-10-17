@@ -9,7 +9,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { hasRole, ROLES } from '../../utils/roles.js';
 import { BACKEND_HINT, isMockFallback, USE_MOCKS } from '../../api/client.js';
 import { PATHS, urls } from '../../routes.js';
-import { notificationsSupported } from '../../hooks/useAlertNotifications.js';
+import { usePushNotifications } from '../../hooks/usePushNotifications.js';
 
 // `roles` = who can see the link (undefined = everyone signed in).
 // Links use base paths (not /manage/overview) so NavLink highlights the
@@ -58,11 +58,7 @@ function Avatar({ user }) {
   );
 }
 
-/** Browser-notification permission, plus a way to ask for it (browsers require a click). */
-function useNotificationPermission() {
-  const [permission, setPermission] = useState(() => (notificationsSupported() ? Notification.permission : 'unsupported'));
-  return [permission, async () => setPermission(await Notification.requestPermission())];
-}
+const NOTIFICATION_SETTINGS = `${urls.account()}#notifications`;
 
 const mockBadge = (
   <span
@@ -142,7 +138,9 @@ function AccountMenu({ user, onSignOut }) {
 export default function Navbar({ activeAlertCount = 0 }) {
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false); // the menu below 1024 px
-  const [permission, askPermission] = useNotificationPermission();
+  // The bell shows until this device has notifications on; it leads to My account › Notifications.
+  const { status: pushStatus } = usePushNotifications();
+  const notificationsOff = !USE_MOCKS && ['off', 'blocked', 'unavailable'].includes(pushStatus);
   const { pathname } = useLocation();
 
   useEffect(() => setOpen(false), [pathname]); // close after navigating
@@ -187,16 +185,16 @@ export default function Navbar({ activeAlertCount = 0 }) {
 
         <div className="ml-auto flex items-center gap-1.5">
           {USE_MOCKS && <span className="hidden xl:inline">{mockBadge}</span>}
-          {permission === 'default' && (
-            <button
-              type="button"
-              onClick={askPermission}
-              title="Turn on alert notifications"
-              aria-label="Turn on alert notifications"
-              className="hidden rounded-md p-2 text-slate-300 transition hover:bg-white/10 hover:text-white lg:inline-flex"
+          {notificationsOff && (
+            <NavLink
+              to={NOTIFICATION_SETTINGS}
+              title="Notifications are off on this device: set them up"
+              aria-label="Set up notifications"
+              className="relative hidden rounded-md p-2 text-slate-300 transition hover:bg-white/10 hover:text-white lg:inline-flex"
             >
               <BellIcon />
-            </button>
+              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-brand" aria-hidden="true" />
+            </NavLink>
           )}
           <NavLink to={urls.newReport()} className="btn-primary px-3 py-1.5 whitespace-nowrap" aria-label="Report a hazard" title="Report a hazard">
             <PlusIcon className="h-4 w-4" />
@@ -240,14 +238,13 @@ export default function Navbar({ activeAlertCount = 0 }) {
               <NavLink to={urls.account()} className={linkClass(true)}>
                 My account
               </NavLink>
-              {permission === 'default' && (
-                <button
-                  type="button"
-                  onClick={askPermission}
+              {notificationsOff && (
+                <NavLink
+                  to={NOTIFICATION_SETTINGS}
                   className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
                 >
-                  <BellIcon className="h-4 w-4" /> Turn on alert notifications
-                </button>
+                  <BellIcon className="h-4 w-4" /> Turn on notifications
+                </NavLink>
               )}
               <button
                 type="button"

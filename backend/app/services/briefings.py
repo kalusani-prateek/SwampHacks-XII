@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 from ..extensions import db
 from ..models import Briefing, Site, utcnow
 from ..settings_store import get_setting
-from . import notify
+from . import notify, push
 from .events import bus
 from .hazards import CONTROLS, LABELS, level
 
@@ -83,6 +83,11 @@ def deliver(payloads, settings):
         notify.notify_roles(settings["recipients"], subject, "\n".join(lines), sms, channels)
     if settings["channels"].get("push"):
         bus.publish({"type": "briefing", "count": len(ranked)})
+        for p in ranked:  # phone/desktop notification: each person gets their own site's briefing
+            summary = p["summary"] if len(p["summary"]) <= 160 else p["summary"][:157] + "…"
+            push.notify_site(p["siteId"], f"Tomorrow at {p['siteName']}: {p['decision']}",
+                             f"Hazard index {p['hazardIndex']:.1f}/10. {summary}",
+                             url="/briefings", tag=f"briefing-{p['siteId']}")
     now = utcnow()
     for row in Briefing.query.filter(Briefing.site_id.in_([p["siteId"] for p in ranked]), Briefing.sent_at.is_(None)):
         row.sent_at = now

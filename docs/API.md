@@ -177,7 +177,11 @@ List filters: `days` = reported in the last N days (1-3650), `q` = text in the d
 | Method | Path | Who | Response |
 |---|---|---|---|
 | GET | `/stats` | Supervisor | `{ stats: { sites, noGoSites, activeAlerts, openReports, users } }` |
-| GET | `/notifications?limit=20` | Supervisor | `{ notifications: [{ id, createdAt, channel, recipient, subject, body, status: "sent" \| "logged" \| "failed", error }] }` |
+| GET | `/notifications?limit=20` | Supervisor | `{ notifications: [{ id, createdAt, channel: "email" \| "sms" \| "push", recipient, subject, body, status: "sent" \| "logged" \| "failed", error }] }` |
+| GET | `/push/key` | Anyone | `{ publicKey }`: the server's Web Push (VAPID) key, base64url |
+| POST | `/push/subscriptions` | Any | the browser's `PushSubscription` JSON `{ endpoint, keys: { p256dh, auth } }` → 201 (turns notifications on for this device) |
+| DELETE | `/push/subscriptions` | Any | `{ endpoint }` (turns them off for this device) |
+| POST | `/push/test` | Any (5/min) | `{ message, devices }`, or 404 if none of your devices has notifications on |
 | GET | `/meta` | Anyone | `{ api, demoTools, demoAccounts, assistant, lightningSource, scoring }` (the frontend uses it to detect the backend) |
 
 ## 9. AI assistant
@@ -253,3 +257,5 @@ APScheduler inside the web process (`backend/app/jobs.py`); each job logs and su
 ## Notifications
 
 `backend/app/services/notify.py` sends email over SMTP (`SMTP_*`) and SMS through Twilio (`TWILIO_*`). Without those settings nothing leaves the server: every message is recorded in the `notifications` table with status `logged`, visible in Manage › Briefings.
+
+**Phone and desktop notifications** (`backend/app/services/push.py`, Web Push) work with no account to set up. Each person turns them on per device in My account › Notifications; they then get, for **their designated site**: tomorrow's briefing when it's generated (6 PM site time), a warning when the site turns **NO-GO** (at most once an hour per site), and each **new hazard report** there (not their own). Messages are encrypted for each device, signed with the server's VAPID key (created on first start in `instance/vapid_private_key.pem`) and shown by the service worker (`frontend/public/sw.js`), even when the app is closed. Every attempt is logged in `notifications` with channel `push`. Requirements: a secure address (https, or localhost on the same computer); on iPhone and iPad, the app must be added to the Home Screen first.

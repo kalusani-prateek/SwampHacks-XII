@@ -105,6 +105,18 @@ Every job follows the same path (`app/services/ingest.py`): **fetch** outside an
 
 New alerts are **published on an in-process event bus** (`app/services/events.py`). Every open browser holds a Server-Sent Events connection to `/api/alerts/stream`, so alerts appear within a second; pages also poll every 15 to 60 s as a fallback. **Stop-work alerts** additionally go out by email and SMS (`app/services/notify.py`). Without SMTP/Twilio settings nothing is sent and each message is saved in the `notifications` table instead (the outbox in Manage › Briefings).
 
+### Phone and desktop notifications (Web Push)
+
+`app/services/push.py` sends notifications that appear on a phone or computer even when the app is closed. Each person turns them on per device (My account › Notifications): the browser subscribes with the server's public key and the backend stores the subscription in `push_subscriptions`. People are notified about **their designated site**:
+
+| Event | Triggered in | Notification |
+|---|---|---|
+| Tomorrow's briefing generated (6 PM site time) | `briefings.deliver()` | "Tomorrow at Turkey Point: CAUTION" + index and summary |
+| Site turns NO-GO (index crosses 7.5) | `ingest.rescore()` (at most once an hour per site) | "⛔ Turkey Point is NO-GO" + the top reason |
+| New hazard report at the site | `POST /api/reports` (not sent to the reporter) | "New hazard report at Turkey Point" + type, description, reporter |
+
+Each message is encrypted for the device and signed with the server's VAPID key (created on first start in `instance/vapid_private_key.pem`), then posted to the browser's push service (Google, Mozilla or Apple) from a background thread. The service worker (`frontend/public/sw.js`) shows it and opens the right page when it's tapped. Subscriptions the push service reports as gone are deleted; every attempt is logged in `notifications` (channel `push`). Signing out unsubscribes that device. Notifications need a secure address (https, or localhost); on iPhone and iPad the app must be added to the Home Screen (the web app manifest and icons make it installable).
+
 ### Next-day briefings
 
 Every 5 minutes, `briefings.run_due()` looks for sites whose local time has passed the send time (18:00 by default, in each site's own time zone) and that have no briefing for tomorrow yet. For each it builds a briefing from the first day of the site's forecast: tomorrow's hazard index, go/no-go call, a summary and the top two hazards with recommended controls. It stores it in `briefings` and delivers one digest per recipient on the enabled channels (email, SMS, browser push).
@@ -277,6 +289,7 @@ erDiagram
   sites ||--o{ briefings : has
   users ||--o{ hazard_reports : files
   users ||--o{ alert_acks : makes
+  users ||--o{ push_subscriptions : "turns on notifications"
   alerts ||--o{ alert_acks : receives
 
   users {
@@ -337,6 +350,11 @@ erDiagram
     string site_id FK
     date for_date
     json payload
+  }
+  push_subscriptions {
+    int id PK
+    int user_id FK
+    text endpoint UK
   }
   settings {
     string key PK
@@ -450,18 +468,28 @@ erDiagram
 | `alert_rules` | lightning radius (10 mi) and all-clear (30 min), flood rain (2"), heat index (105°F), wind (35 mph), index alert (7.5) |
 | `briefing_settings` | enabled, local send time (18:00), channels (email, SMS, push), recipients (crew, supervisor) |
 
-**`notifications`**: every email or text attempted (the outbox)
+**`notifications`**: every email, text or push notification attempted (the outbox)
 
 | Column | Type | Notes |
 |---|---|---|
 | `id` | integer, primary key | |
 | `created_at` | datetime, indexed | |
-| `channel` | string(10) | `email` or `sms` |
+| `channel` | string(10) | `email`, `sms` or `push` |
 | `recipient`, `subject`, `body` | strings, text | |
 | `status` | string(10) | `sent`, `logged` (not configured) or `failed` |
 | `error` | text, optional | why it failed |
 
-**Not in the database:** uploaded photos (files in `backend/uploads/`), the ML model (`backend/ml/hazard_model.json`), API keys and secrets (`backend/.env`), and short-lived in-memory state (rate-limit counters, live-stream subscribers).
+**`push_subscriptions`**: phones and computers with notifications turned on (one row per browser; deleted with the account)
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | integer, primary key | |
+| `user_id` | → `users.id` | whose device it is |
+| `endpoint` | text, unique | the browser's address at its push service |
+| `p256dh`, `auth` | strings | the browser's encryption key and secret |
+| `created_at` | datetime | |
+
+**Not in the database:** uploaded photos (files in `backend/uploads/`), the ML model (`backend/ml/hazard_model.json`), the Web Push signing key (`backend/instance/vapid_private_key.pem`), API keys and secrets (`backend/.env`), and short-lived in-memory state (rate-limit counters, live-stream subscribers).
 
 ## 8. Two flows end to end
 

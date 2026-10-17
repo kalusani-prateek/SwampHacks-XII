@@ -11,8 +11,9 @@ from sqlalchemy import or_
 from ..extensions import db
 from ..models import REPORT_STATUSES, REPORT_TYPES, HazardReport, Site, User, utcnow
 from ..security import error
-from ..services import ingest
+from ..services import ingest, push
 from ..services.events import bus
+from ..services.hazards import LABELS
 from .validation import number
 
 bp = Blueprint("reports", __name__)
@@ -20,6 +21,7 @@ bp = Blueprint("reports", __name__)
 # Accepted photo formats, recognized by their first bytes (not by the file name).
 SIGNATURES = {b"\xff\xd8\xff": "jpg", b"\x89PNG\r\n\x1a\n": "png", b"GIF87a": "gif", b"GIF89a": "gif"}
 STORED_NAME = re.compile(r"^[a-f0-9]{32}\.(jpg|png|gif|webp)$")
+TYPE_LABELS = {**LABELS, "debris": "Debris / obstruction", "equipment": "Equipment problem", "other": "Hazard"}
 MAX_SEARCH_CHARS = 100
 
 
@@ -109,6 +111,10 @@ def create_report():
     db.session.add(report)
     db.session.commit()
     bus.publish({"type": "report", "reportId": report.id, "siteId": site.id})
+    # Phone/desktop notification for everyone who works at this site (not the reporter).
+    push.notify_site(site.id, f"New hazard report at {site.name}",
+                     f"{TYPE_LABELS.get(report.type, 'Hazard')}: {description[:140]} (from {current_user.username})",
+                     url=f"/reports?site={site.id}", tag=f"report-{report.id}", exclude_user_id=current_user.id)
     if report.type == "wildlife":
         ingest.rescore([site])  # crew wildlife reports raise the site's wildlife score
     return {"report": report.to_dict(current_user)}, 201

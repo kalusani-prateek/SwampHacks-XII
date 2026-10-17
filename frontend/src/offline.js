@@ -1,15 +1,18 @@
-// Offline support for crews at remote sites with poor signal.
-// The service worker (public/sw.js) keeps the app and the last data each page
-// loaded, so pages still open offline with the most recent saved readings.
-// Only registered in production builds, so it never caches stale dev code.
+// The service worker (public/sw.js) does two jobs:
+//   - offline support for crews at remote sites with poor signal: it keeps the
+//     app and the last data each page loaded (production builds only, so it
+//     never caches stale dev code);
+//   - phone and desktop notifications (Web Push), in every build.
+// In development it's registered as /sw.js?dev, which tells it to skip caching.
 
 export const API_CACHE = 'planit-api-v1';
 
 export function registerOfflineSupport() {
-  if (!import.meta.env.PROD || !('serviceWorker' in navigator)) return;
+  if (!('serviceWorker' in navigator)) return;
+  const script = import.meta.env.PROD ? '/sw.js' : '/sw.js?dev';
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {
-      /* offline support is optional; the app works without it */
+    navigator.serviceWorker.register(script).catch(() => {
+      /* offline support and notifications are optional; the app works without them */
     });
   });
 }

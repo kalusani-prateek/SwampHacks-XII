@@ -51,6 +51,12 @@ export const ENDPOINTS = {
     detail: (id) => `/reports/${segment(id)}`, //            PATCH / DELETE  reporter or supervisor (status: supervisor)
   },
 
+  push: {
+    key: '/push/key', //                                     GET    public key browsers subscribe with
+    subscriptions: '/push/subscriptions', //                 POST   turn on / DELETE turn off for this device
+    test: '/push/test', //                                   POST   send yourself a test notification
+  },
+
   briefings: {
     list: '/briefings', //                                   GET    ?date=YYYY-MM-DD
     create: '/briefings', //                                 POST   (supervisor) send briefings now

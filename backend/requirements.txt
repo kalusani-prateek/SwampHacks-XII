@@ -24,5 +24,8 @@ openpyxl==3.1.5
 # AI assistant (POST /api/chat)
 anthropic==1.15.0
 
+# Phone and desktop notifications (Web Push: VAPID signing and message encryption)
+pywebpush==2.5.0
+
 # Tests
 pytest==9.1.1
