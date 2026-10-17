@@ -4,6 +4,11 @@ Flask-Login==0.6.3
 Flask-Bcrypt==1.0.1
 Flask-Migrate==4.0.5
 Flask-CORS==4.0.0
+<<<<<<< HEAD
+scikit-learn>=1.3,<2
+pandas>=2.0,<3
+=======
 pandas==2.2.2
 requests==2.32.3
 openpyxl==3.1.5
+>>>>>>> 635dc1586ce57acbc4b41b206934a3e78e7d7bb2
