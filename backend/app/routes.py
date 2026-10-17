@@ -20,16 +20,16 @@ def admin_required():
 @auth_bp.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
-    print("hello")
     if not data:
         return make_response(jsonify({'message': 'No input data provided'}), 400)
 
     username = data.get('username')
     email = data.get('email')
     password = data.get('password')
+    site_id = data.get('site_id')
 
-    if not username or not email or not password:
-        return make_response(jsonify({'message': 'Missing required fields'}), 400)
+    if not username or not email or not password or site_id is None:
+        return make_response(jsonify({'message': 'Missing required fields (username, email, password, site_id)'}), 400)
 
     if User.query.filter_by(username=username).first():
         return make_response(jsonify({'message': 'Username already exists'}), 409)
@@ -37,7 +37,11 @@ def register():
     if User.query.filter_by(email=email).first():
         return make_response(jsonify({'message': 'Email already exists'}), 409)
 
-    new_user = User(username=username, email=email)
+    site = Site.query.get(site_id)
+    if not site:
+        return make_response(jsonify({'message': 'Site not found'}), 404)
+
+    new_user = User(username=username, email=email, site_id=site_id)
     new_user.set_password(password)
 
     db.session.add(new_user)
@@ -203,6 +207,7 @@ def update_user_by_admin(user_id):
     email = data.get('email')
     password = data.get('password')
     is_admin = data.get('is_admin')
+    site_id = data.get('site_id')
 
     if username:
         existing_user = User.query.filter_by(username=username).first()
@@ -221,6 +226,13 @@ def update_user_by_admin(user_id):
 
     if is_admin is not None:
         user.is_admin = bool(is_admin)
+
+    if site_id is not None:
+        # Validate site exists
+        site = Site.query.get(site_id)
+        if not site:
+            return make_response(jsonify({'message': 'Site not found'}), 404)
+        user.site_id = site_id
 
     db.session.commit()
 
@@ -242,8 +254,42 @@ def delete_user_by_admin(user_id):
 
     return make_response(jsonify({'message': 'User deleted successfully'}), 200)
 
+# Admin site management
+@admin_bp.route('/sites/<int:site_id>', methods=['DELETE'])
+@login_required
+def delete_site_by_admin(site_id):
+    admin_check = admin_required()
+    if admin_check:
+        return admin_check
+
+    site = Site.query.get(site_id)
+    if not site:
+        return make_response(jsonify({'message': 'Site not found'}), 404)
+
+    db.session.delete(site)
+    db.session.commit()
+
+    return make_response(jsonify({'message': 'Site deleted'}), 200)
+
+# Admin incident management
+@admin_bp.route('/incidents/<int:incident_id>', methods=['DELETE'])
+@login_required
+def delete_incident_by_admin(incident_id):
+    admin_check = admin_required()
+    if admin_check:
+        return admin_check
+
+    incident = Incident.query.get(incident_id)
+    if not incident:
+        return make_response(jsonify({'message': 'Incident not found'}), 404)
+
+    db.session.delete(incident)
+    db.session.commit()
+
+    return make_response(jsonify({'message': 'Incident deleted'}), 200)
+
 # Site routes
-@site_bp.route('/create_site', methods=['POST'])
+@site_bp.route('/add_site', methods=['POST'])
 @login_required
 def create_site():
     admin_check = admin_required()
@@ -285,6 +331,49 @@ def get_all_sites():
         'state': site.state
     } for site in sites]), 200
 
+@site_bp.route('/<int:site_id>', methods=['PUT'])
+@login_required
+def update_site(site_id):
+    admin_check = admin_required()
+    if admin_check:
+        return admin_check
+
+    data = request.get_json()
+    if not data:
+        return make_response(jsonify({'message': 'No input data provided'}), 400)
+
+    site = Site.query.get(site_id)
+    if not site:
+        return make_response(jsonify({'message': 'Site not found'}), 404)
+
+    name = data.get('name')
+    city = data.get('city')
+    state = data.get('state')
+
+    if name is None and city is None and state is None:
+        return make_response(jsonify({'message': 'No fields to update'}), 400)
+
+    if name is not None:
+        existing_site = Site.query.filter_by(name=name).first()
+        if existing_site and existing_site.id != site_id:
+            return make_response(jsonify({'message': 'Site name already exists'}), 409)
+
+    if name is not None:
+        site.name = name
+    if city is not None:
+        site.city = city
+    if state is not None:
+        site.state = state
+
+    db.session.commit()
+
+    return make_response(jsonify({
+        'id': site.id,
+        'name': site.name,
+        'city': site.city,
+        'state': site.state
+    }), 200)
+
 # Incident routes
 @incident_bp.route('/add_incident', methods=['POST'])
 @login_required
@@ -323,7 +412,8 @@ def upload_incident():
         'image': new_incident.image,
         'location': new_incident.location,
         'description': new_incident.description,
-        'site_id': new_incident.site_id
+        'site_id': new_incident.site_id,
+        'date_posted': new_incident.date_posted.isoformat() if new_incident.date_posted else None
     }), 201)
 
 @incident_bp.route('/get_incidents', methods=['GET'])
@@ -335,8 +425,61 @@ def get_all_incidents():
         'image': incident.image,
         'location': incident.location,
         'description': incident.description,
-        'site_id': incident.site_id
+        'site_id': incident.site_id,
+        'date_posted': incident.date_posted.isoformat() if incident.date_posted else None
     } for incident in incidents]), 200
+
+@incident_bp.route('/<int:incident_id>', methods=['PUT'])
+@login_required
+def update_incident(incident_id):
+    data = request.get_json()
+    if not data:
+        return make_response(jsonify({'message': 'No input data provided'}), 400)
+
+    incident = Incident.query.get_or_404(incident_id)
+    if incident.users_username != current_user.username:
+        return make_response(jsonify({'message': 'Unauthorized to update this incident'}), 403)
+
+    image = data.get('image')
+    location = data.get('location')
+    description = data.get('description')
+    site_id = data.get('site_id')
+
+    if image is not None:
+        incident.image = image
+    if location is not None:
+        incident.location = location
+    if description is not None:
+        incident.description = description
+    if site_id is not None:
+        site = Site.query.get(site_id)
+        if not site:
+            return make_response(jsonify({'message': 'Site not found'}), 404)
+        incident.site_id = site_id
+
+    db.session.commit()
+
+    return make_response(jsonify({
+        'id': incident.id,
+        'users_username': incident.users_username,
+        'image': incident.image,
+        'location': incident.location,
+        'description': incident.description,
+        'site_id': incident.site_id,
+        'date_posted': incident.date_posted.isoformat() if incident.date_posted else None
+    }), 200)
+
+@incident_bp.route('/<int:incident_id>', methods=['DELETE'])
+@login_required
+def delete_incident(incident_id):
+    incident = Incident.query.get_or_404(incident_id)
+    if incident.users_username != current_user.username:
+        return make_response(jsonify({'message': 'Unauthorized to delete this incident'}), 403)
+
+    db.session.delete(incident)
+    db.session.commit()
+
+    return make_response(jsonify({'message': 'Incident deleted'}), 200)
 
 # Register blueprints
 # Note: In __init__.py we will register these blueprints with appropriate url_prefixes
