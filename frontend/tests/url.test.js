@@ -31,3 +31,16 @@ test('page URLs are readable and there is no admin section', () => {
   assert.deepEqual(MANAGE_TABS.map((t) => urls.manage(t.slug)).filter((u) => !u.startsWith('/manage/')), []);
   assert.equal(Object.values(PATHS).some((p) => p.includes('admin')), false);
 });
+
+test('hazard report filters stay readable in the URL', () => {
+  assert.equal(urls.reports(), '/reports');
+  assert.equal(
+    urls.reports({ site: 'turkey-point', type: 'wildlife', days: '7', mine: 'true' }),
+    '/reports?site=turkey-point&type=wildlife&days=7&mine=true',
+  );
+  assert.equal(urls.reports({ q: 'gator & road' }), '/reports?q=gator+%26+road');
+});
+
+test('the account page has a plain URL', () => {
+  assert.equal(urls.account(), '/account');
+});

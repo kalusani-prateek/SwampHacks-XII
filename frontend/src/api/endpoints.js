@@ -31,6 +31,7 @@ export const ENDPOINTS = {
 
   sites: {
     list: '/sites', //                                       GET    ?includeInactive=true (supervisor)
+    options: '/sites/options', //                            GET    public: { id, name, state } for the sign-up form
     create: '/sites', //                                     POST   (supervisor)
     detail: (id) => `/sites/${segment(id)}`, //              GET    · PUT / DELETE (supervisor)
     forecast: (id) => `/sites/${segment(id)}/forecast`, //   GET    7-day hazard forecast
@@ -45,9 +46,9 @@ export const ENDPOINTS = {
   },
 
   reports: {
-    list: '/reports', //                                     GET    ?siteId=&status=
+    list: '/reports', //                                     GET    ?siteId=&type=&status=&days=&q=&mine=true
     create: '/reports', //                                   POST   multipart (photo)
-    detail: (id) => `/reports/${segment(id)}`, //            PATCH  (supervisor) moderation
+    detail: (id) => `/reports/${segment(id)}`, //            PATCH / DELETE  reporter or supervisor (status: supervisor)
   },
 
   briefings: {

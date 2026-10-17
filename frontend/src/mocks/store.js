@@ -74,9 +74,10 @@ export const mockStore = {
 
   // Demo accounts. Mock login accepts any non-empty password. Only two roles:
   // supervisors hold all management privileges (there is no admin account).
+  // Both work at Turkey Point (the brief's scenario), their designated site.
   users: [
-    { id: 1, username: 'supervisor', email: 'supervisor@planit.dev', role: 'supervisor' },
-    { id: 2, username: 'crew', email: 'crew@planit.dev', role: 'crew' },
+    { id: 1, username: 'supervisor', email: 'supervisor@planit.dev', role: 'supervisor', siteId: 'turkey-point', siteName: 'Turkey Point' },
+    { id: 2, username: 'crew', email: 'crew@planit.dev', role: 'crew', siteId: 'turkey-point', siteName: 'Turkey Point' },
   ],
 
   // Crew hazard reports (the gator sighting from the brief included).

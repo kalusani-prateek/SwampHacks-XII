@@ -3,7 +3,7 @@
 // When demo accounts exist (mock mode, or a development server), they are
 // offered as one-click buttons.
 import { useState } from 'react';
-import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { BACKEND_HINT, isMockFallback, USE_MOCKS } from '../api/client.js';
 import { useMeta } from '../hooks/useMeta.js';
@@ -24,7 +24,8 @@ export default function LoginPage() {
 
   // Validate `next` so /login?next=https://evil.example can't redirect off-site.
   const nextParam = params.get('next');
-  const next = isSafeInternalPath(nextParam) && !nextParam.startsWith(PATHS.login) ? nextParam : null;
+  const next =
+    isSafeInternalPath(nextParam) && ![PATHS.login, PATHS.register].some((path) => nextParam.startsWith(path)) ? nextParam : null;
 
   if (user) return <Navigate to={next ?? urls.home()} replace />;
 
@@ -89,6 +90,12 @@ export default function LoginPage() {
           <button type="submit" className="btn-primary w-full" disabled={submitting}>
             {submitting ? 'Signing in…' : 'Sign in'}
           </button>
+          <p className="text-center text-sm text-slate-500">
+            New to PlanIT?{' '}
+            <Link to={urls.register({ next })} className="font-medium text-brand hover:underline">
+              Create an account
+            </Link>
+          </p>
 
           {demoAccounts && (
             <div className="border-t border-slate-100 pt-3 text-xs text-slate-500">

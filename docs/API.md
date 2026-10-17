@@ -15,12 +15,14 @@ Two roles and **no admin role**. Supervisors hold every management privilege.
 |---|:-:|:-:|
 | View sites, alerts and briefings | ✓ | ✓ |
 | Report hazards (photo + map pin) | ✓ | ✓ |
+| Edit your own account: username, email, password, designated site | ✓ | ✓ |
+| Browse and search hazard reports; edit or delete your own | ✓ | ✓ |
 | Use the AI assistant | ✓ | ✓ |
 | PlanIt Dashboard (ranked risk map) | | ✓ |
-| Manage users and roles | | ✓ |
+| Manage users, roles and designated sites | | ✓ |
 | Add, edit, pause or delete sites | | ✓ |
 | Edit alert rules and briefing settings; send briefings now | | ✓ |
-| Moderate hazard reports; read the notification outbox | | ✓ |
+| Moderate hazard reports (status) and edit or delete anyone's; read the notification outbox | | ✓ |
 
 Permissions are checked on the server from `current_user.role` (`supervisor_required` in `backend/app/security.py`). Self-registration creates crew accounts; there must always be at least one supervisor (demoting or deleting the last one returns 409).
 
@@ -37,11 +39,14 @@ Permissions are checked on the server from `current_user.role` (`supervisor_requ
 | Page URL | Page | Who | API calls |
 |---|---|---|---|
 | `/login?next=/manage/users` | Sign in | Anyone | `GET /meta`, `POST /auth/login` |
+| `/register?next=/alerts` | Create a crew account at a designated site | Anyone | `GET /sites/options`, `POST /auth/register` |
+| `/account` | My account: username, email, password, designated site | Any | `GET /sites`, `PUT /users/:id` |
 | `/` | Redirect by role (crew → `/sites`, supervisor → `/dashboard`) | Any | none |
 | `/dashboard?decision=no-go` | PlanIt Dashboard | Supervisor | `GET /sites`, `GET /alerts?active=true` |
 | `/sites?q=florida` | Site list | Any | `GET /sites` |
 | `/sites/:siteId` | Site risk picture | Any | `GET /sites/:siteId`, `/forecast`, `/lightning`, `GET /alerts?active=true&siteId=`, `GET /reports?siteId=` |
 | `/alerts?type=lightning` | Alert feed | Any | `GET /alerts?active=true`, `POST /alerts/:id/ack`, `GET /alerts/stream` |
+| `/reports?type=wildlife&days=7&mine=true` | Hazard reports: browse and search; edit or delete your own (supervisors: any report, including its status) | Any | `GET /sites`, `GET /reports`, `PATCH /reports/:id`, `DELETE /reports/:id` |
 | `/reports/new?site=:siteId` | Crew hazard report | Any | `GET /sites`, `POST /reports` |
 | `/briefings?q=texas` | Next-day briefings | Any | `GET /briefings` |
 | `/manage/overview` | Manage › Overview | Supervisor | `GET /stats`, `GET /sites` |
@@ -58,28 +63,31 @@ Permissions are checked on the server from `current_user.role` (`supervisor_requ
 
 | Method | Path | Who | Body | Response |
 |---|---|---|---|---|
-| POST | `/auth/register` | Anyone | `{ username, email, password }` | 201 `{ message, user }` (crew account) |
+| POST | `/auth/register` | Anyone (5/min per IP) | `{ username, email, password, siteId }` | 201 `{ message, user }` (crew account at that site, signed in straight away) |
 | POST | `/auth/login` | Anyone (10/min per IP) | `{ username, password }` | `{ message, user }` |
 | POST | `/auth/logout` | Any | none | `{ message }` |
 | GET | `/auth/me` | Any | none | `{ user }`, or 401 |
 
-`User` = `{ id, username, email, role: "crew" | "supervisor", phone }`. Usernames are 3-64 letters/digits/`._-`; passwords at least 8 characters; `phone` (optional, for SMS) in E.164 format.
+`User` = `{ id, username, email, role: "crew" | "supervisor", phone, siteId, siteName }`, where `siteId` is the person's designated site: the web app lists it first and highlights it on the Sites, Alerts, Hazard Reports and Briefings pages. It must be an active site; deleting a site clears it for the people there. Usernames are 3-64 letters/digits/`._-`; passwords at least 8 characters; `phone` (optional, for SMS) in E.164 format.
 
 ## 2. Users
 
 | Method | Path | Who | Body | Response |
 |---|---|---|---|---|
 | GET | `/users` | Supervisor | none | `{ users }` |
-| POST | `/users` | Supervisor | `{ username, email, password, role, phone? }` | 201 `{ user }`, 409 on duplicates |
+| POST | `/users` | Supervisor | `{ username, email, password, role, phone?, siteId? }` | 201 `{ user }`, 409 on duplicates |
 | GET | `/users/:id` | Self or supervisor | none | `User` |
-| PUT | `/users/:id` | Self or supervisor; `role` supervisor-only | `{ username?, email?, password?, role?, phone? }` | `{ message, user }` |
+| PUT | `/users/:id` | Self or supervisor; `role` supervisor-only | `{ username?, email?, password?, role?, phone?, siteId?, currentPassword? }` | `{ message, user }` |
 | DELETE | `/users/:id` | Self or supervisor | none | `{ message }` |
+
+Changing **your own** username, email or password needs `currentPassword` (400 if missing, 403 if wrong, 10 tries a minute); changing your designated site doesn't. Supervisors can update other people's details without it.
 
 ## 3. Sites
 
 | Method | Path | Who | Body / query | Response |
 |---|---|---|---|---|
 | GET | `/sites` | Any (`includeInactive` supervisor) | `?includeInactive=true` | `{ sites: Site[] }` |
+| GET | `/sites/options` | Anyone (no sign-in) | none | `{ sites: [{ id, name, state }] }`, the active sites for the sign-up form |
 | POST | `/sites` | Supervisor | `{ name, state, county?, lat, lng, plantType, utility, waterway, timezone }` | 201 `{ site }` |
 | GET | `/sites/:id` | Any | none | `{ site }` (404 if unknown or paused) |
 | PUT | `/sites/:id` | Supervisor | any editable field, including `active` | `{ message, site }` |
@@ -126,12 +134,15 @@ The browser keeps the stream open only while the tab is visible (browsers allow 
 
 | Method | Path | Who | Body / query | Response |
 |---|---|---|---|---|
-| GET | `/reports` | Any | `?siteId=&status=` | `{ reports }` |
+| GET | `/reports` | Any | `?siteId=&type=&status=&days=&q=&mine=true` | `{ reports }`, newest first (at most 500) |
 | POST | `/reports` | Any | multipart: `siteId, type, description, lat, lng, photo?` | 201 `{ report }` |
-| PATCH | `/reports/:id` | Supervisor | `{ status }` | `{ report }` |
+| PATCH | `/reports/:id` | Reporter or supervisor | `{ type?, description?, lat?, lng?, removePhoto? }`; `{ status }` is supervisor-only | `{ report }` |
+| DELETE | `/reports/:id` | Reporter or supervisor | none | `{ message }` (the photo is deleted too) |
 | GET | `/uploads/:filename` | Any | none | the photo |
 
-`Report` = `{ id, siteId, type, description, lat, lng, photoUrl, reportedBy, createdAt, status: "open" | "verified" | "resolved" | "dismissed" }`. Photos must be JPEG, PNG, GIF or WebP (checked by content, not file name), at most `MAX_UPLOAD_MB` (10 MB); they are stored under random names in `UPLOAD_FOLDER`. Crew wildlife reports from the last 7 days raise the site's wildlife score.
+List filters: `days` = reported in the last N days (1-3650), `q` = text in the description, the reporter's name or the site name (case-insensitive), `mine=true` = only your own reports. Anyone else gets 403 on `PATCH` / `DELETE`.
+
+`Report` = `{ id, siteId, type, description, lat, lng, photoUrl, reportedBy, createdAt, status: "open" | "verified" | "resolved" | "dismissed", canEdit }`, where `canEdit` is true for the person who reported it and for supervisors. Photos must be JPEG, PNG, GIF or WebP (checked by content, not file name), at most `MAX_UPLOAD_MB` (10 MB); they are stored under random names in `UPLOAD_FOLDER`. Crew wildlife reports from the last 7 days raise the site's wildlife score.
 
 ## 6. Briefings
 

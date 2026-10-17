@@ -75,8 +75,8 @@ src/
 │   ├── alerts/     AlertCard, LightningCountdown (30-min all-clear)
 │   └── reports/    ReportList
 └── pages/
-    ├── LoginPage, SitesPage, SiteDetailPage, AlertsPage,
-    ├── ReportHazardPage, BriefingsPage, DashboardPage (supervisor), NotFoundPage
+    ├── LoginPage, RegisterPage, AccountPage, SitesPage, SiteDetailPage, AlertsPage,
+    ├── HazardReportsPage, ReportHazardPage, BriefingsPage, DashboardPage (supervisor), NotFoundPage
     └── manage/     ManagePage (/manage/:tab, supervisor) + tabs/
                     (Overview, Users, Sites, Alert rules, Hazard reports, Briefings)
 tests/              url.test.js, hazard.test.js

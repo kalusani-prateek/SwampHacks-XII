@@ -5,7 +5,7 @@ backend/.venv
 backend/.env
 backend/instance
 backend/uploads
-backend/ml
+backend/ml/data
 frontend/node_modules
 frontend/dist
 frontend/.env*

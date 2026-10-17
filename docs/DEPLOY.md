@@ -48,18 +48,14 @@ One process serves everything: the REST API, the background data jobs and the bu
 
 ## Option B: Docker
 
-The repository root has a `Dockerfile` that builds the frontend and runs `serve.py`. It has not been tested yet, because Docker wasn't available on the development machine.
+The repository root has a `Dockerfile`, which builds the frontend and runs `serve.py`, and a `compose.yaml`. Step-by-step instructions are in the README under [Run with Docker](../README.md#run-with-docker). In short:
 
 ```bash
-docker build -t planit-control .
-docker run -p 5000:5000 \
-  -e SECRET_KEY=change-me -e CONTACT_EMAIL=you@example.com \
-  -v planit-data:/app/backend/instance -v planit-uploads:/app/backend/uploads \
-  planit-control
-docker exec -it <container> flask --app run create-supervisor
+docker compose up --build                                       # settings from backend/.env
+docker compose exec planit flask --app run create-supervisor    # first supervisor (production mode)
 ```
 
-The two volumes keep the database and uploaded photos when the container is replaced.
+The two volumes (`planit-data`, `planit-uploads`) keep the database and uploaded photos when the container is replaced. For a public server, set `APP_ENV=production`, `SECRET_KEY` and `CONTACT_EMAIL`, and put it behind HTTPS (Option A covers the HTTPS part). The Docker setup hasn't been run end to end yet, because Docker wasn't available on the development machine.
 
 ## Operating notes
 

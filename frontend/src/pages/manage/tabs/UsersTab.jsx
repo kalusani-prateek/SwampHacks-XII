@@ -1,18 +1,22 @@
-// User management (supervisors only): list, create, change role, delete.
-// REST resources: /api/users and /api/users/:id (see src/api/users.js).
+// User management (supervisors only): list, create, change role or designated
+// site, delete. REST resources: /api/users and /api/users/:id (see src/api/users.js).
 import { useState } from 'react';
 import { ErrorState, LoadingState } from '../../../components/common/Status.jsx';
 import { useApi } from '../../../hooks/useApi.js';
 import { useAuth } from '../../../context/AuthContext.jsx';
 import { createUser, deleteUser, getUsers, updateUser } from '../../../api/users.js';
+import { getSites } from '../../../api/sites.js';
 import { ROLES } from '../../../utils/roles.js';
 
-const EMPTY_FORM = { username: '', email: '', password: '', role: ROLES.CREW };
+const EMPTY_FORM = { username: '', email: '', password: '', role: ROLES.CREW, siteId: '' };
 
 export default function UsersTab() {
-  const { user: me } = useAuth();
-  // REST API PLACEHOLDER: GET /api/users
-  const { data, loading, error, reload } = useApi(() => getUsers());
+  const { user: me, updateAccount } = useAuth();
+  // REST API PLACEHOLDERS: GET /api/users + GET /api/sites (designated-site choices)
+  const { data, loading, error, reload } = useApi(async () => {
+    const [{ users }, { sites }] = await Promise.all([getUsers(), getSites()]);
+    return { users, sites };
+  });
   const [form, setForm] = useState(EMPTY_FORM);
   const [formError, setFormError] = useState('');
 
@@ -20,7 +24,7 @@ export default function UsersTab() {
     e.preventDefault();
     setFormError('');
     try {
-      await createUser(form); // REST API PLACEHOLDER: POST /api/users
+      await createUser({ ...form, siteId: form.siteId || undefined }); // REST API PLACEHOLDER: POST /api/users
       setForm(EMPTY_FORM);
       reload({ silent: true });
     } catch (err) {
@@ -32,6 +36,25 @@ export default function UsersTab() {
     await updateUser(id, { role }); // REST API PLACEHOLDER: PUT /api/users/:id
     reload({ silent: true });
   }
+
+  async function handleSiteChange(id, siteId) {
+    // Your own row goes through the account context so your pages re-sort at once.
+    if (id === me.id) await updateAccount({ siteId: siteId || null });
+    else await updateUser(id, { siteId: siteId || null }); // REST API PLACEHOLDER: PUT /api/users/:id
+    reload({ silent: true });
+  }
+
+  /** Designated-site picker shared by the table rows and the "Add user" form. */
+  const siteSelect = (props) => (
+    <select className="input py-1" {...props}>
+      <option value="">No site yet</option>
+      {data.sites.map((s) => (
+        <option key={s.id} value={s.id}>
+          {s.name} ({s.state})
+        </option>
+      ))}
+    </select>
+  );
 
   async function handleDelete(u) {
     if (!window.confirm(`Delete user "${u.username}"?`)) return;
@@ -52,6 +75,7 @@ export default function UsersTab() {
               <th className="px-2 py-2">Username</th>
               <th className="px-2 py-2">Email</th>
               <th className="px-2 py-2">Role</th>
+              <th className="px-2 py-2">Site</th>
               <th className="px-2 py-2" />
             </tr>
           </thead>
@@ -73,6 +97,13 @@ export default function UsersTab() {
                       </option>
                     ))}
                   </select>
+                </td>
+                <td className="px-2 py-2">
+                  {siteSelect({
+                    'aria-label': `${u.username}'s site`,
+                    value: u.siteId ?? '',
+                    onChange: (e) => handleSiteChange(u.id, e.target.value),
+                  })}
                 </td>
                 <td className="px-2 py-2 text-right">
                   {u.id !== me.id && (
@@ -117,6 +148,12 @@ export default function UsersTab() {
               </option>
             ))}
           </select>
+        </div>
+        <div>
+          <label className="label" htmlFor="new-site">
+            Site
+          </label>
+          {siteSelect({ id: 'new-site', value: form.siteId, onChange: (e) => setForm({ ...form, siteId: e.target.value }) })}
         </div>
         {formError && <p className="text-sm text-red-600">{formError}</p>}
         <button className="btn-primary w-full">Create user</button>

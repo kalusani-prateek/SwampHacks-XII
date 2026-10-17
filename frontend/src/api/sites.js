@@ -18,6 +18,18 @@ export async function getSites() {
 }
 
 /**
+ * Active site names for choosing "the site you work at" (works signed out, for the sign-up form).
+ * REST API PLACEHOLDER: GET /api/sites/options  -> { sites: [{ id, name, state }] }
+ */
+export async function getSiteOptions() {
+  if (USE_MOCKS) {
+    const sites = mockStore.sites.filter((s) => s.active).map(({ id, name, state }) => ({ id, name, state }));
+    return mockResponse({ sites: sites.sort((a, b) => a.name.localeCompare(b.name)) });
+  }
+  return apiRequest(ENDPOINTS.sites.options);
+}
+
+/**
  * One site's combined risk picture: per-hazard scores, live conditions and
  * the reasons behind the hazard index.
  * REST API PLACEHOLDER: GET /api/sites/:id  -> { site: Site }  |  404 if unknown

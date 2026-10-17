@@ -121,7 +121,12 @@ export default function SiteDetailPage() {
           </div>
 
           <div className="card">
-            <h2 className="mb-1 font-semibold text-navy-800">Crew hazard reports</h2>
+            <div className="mb-1 flex items-baseline justify-between gap-2">
+              <h2 className="font-semibold text-navy-800">Crew hazard reports</h2>
+              <Link to={urls.reports({ site: site.id, days: 'all' })} className="text-sm font-medium text-brand hover:underline">
+                Search all reports
+              </Link>
+            </div>
             <ReportList reports={reports} />
           </div>
         </div>

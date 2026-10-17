@@ -45,5 +45,6 @@ The brief's 6:45 AM scene: heat, storms, mud and a gator, all knowable ahead of 
 ## Closing points
 
 - Two roles: supervisors hold all management privileges; there is no separate admin.
+- Everyone has a designated site, chosen at sign-up and changeable under **My account** (click your name). It is listed first and highlighted on the Sites, Alerts, Hazard Reports and Briefings pages.
 - ML scoring learned from three years of NOAA storm reports at these 58 sites and checked on a year it never saw, with the safety rules as a floor.
 - Works offline with the last saved data (production build), and sends browser notifications for new alerts.
