@@ -30,16 +30,38 @@ Backend:
  - database to store incident info
  - Flask RestFUL
 
-## Project structure
+## PlanIT Control
+
+Real-time hazard monitoring for utility field crews at 58 real power-plant job sites (from EIA-860M). It combines live weather, NWS warnings, river gauges, satellite fire detections, wildlife sightings and NOAA GOES satellite lightning into one 0-10 hazard index per site. It also raises stop-work alerts (10-mile / 30-minute lightning rule, flood, heat, wind), sends 6 PM next-day briefings, takes crew hazard reports with photos, and answers questions through a Claude-powered assistant.
 
 ```
-backend/     Flask REST API (auth done; hazard endpoints planned)
-frontend/    React + Tailwind CSS web app; see frontend/README.md
-docs/        API_PLAN.md, the REST contract between frontend and backend
+backend/     Flask REST API, background data jobs, tests   (backend/README.md)
+frontend/    React + Tailwind CSS web app, tests          (frontend/README.md)
+docs/        API.md (contract), DEPLOY.md, DEMO.md (5-minute walkthrough)
 ```
 
-Quick start (frontend, mock data):
+## Quick start
 
 ```bash
-cd frontend && npm install && npm run dev
+# Backend (Python 3.12+): http://localhost:5000
+cd backend
+python -m venv .venv
+.venv\Scripts\python -m pip install -r requirements.txt
+.venv\Scripts\python run.py
+
+# Frontend (Node 20.19+): http://localhost:5173, in a second terminal
+cd frontend
+npm install
+npm run dev
+```
+
+Sign in with the **supervisor** or **crew** demo button. Without the backend running, the frontend falls back to demo data. Add `ANTHROPIC_API_KEY` to `backend/.env` to turn on the AI assistant.
+
+On Windows PowerShell, use `npm.cmd` if `npm` is blocked by the script policy.
+
+## Tests
+
+```bash
+cd backend && .venv\Scripts\python -m pytest     # 60 API, scoring, alert and assistant tests
+cd frontend && npm test                          # URL, hazard-band and demo-assistant tests
 ```
