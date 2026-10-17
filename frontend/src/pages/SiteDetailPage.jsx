@@ -72,14 +72,19 @@ export default function SiteDetailPage() {
         {/* Left column: score + lightning + breakdown */}
         <div className="space-y-6">
           <div className="card">
-            <p className="label">ML hazard index</p>
+            <p className="label">Hazard index</p>
             <HazardBadge score={site.hazardIndex} showDecision size="lg" />
             <ul className="mt-3 space-y-1 text-sm text-slate-700">
               {site.drivers.map((d) => (
                 <li key={d}>• {d}</li>
               ))}
             </ul>
-            <p className="mt-3 text-xs text-slate-400">Updated {timeAgo(site.updatedAt)}</p>
+            <p className="mt-3 text-xs text-slate-400">
+              {site.updatedAt ? `Updated ${timeAgo(site.updatedAt)}` : 'Waiting for the first data refresh'}
+              {/* Which method produced the score (rule-based today; an ML model can replace it) */}
+              {site.scoring?.label && <span className="block">{site.scoring.label}</span>}
+              {site.eiaPlantId && <span className="block">EIA plant ID {site.eiaPlantId}</span>}
+            </p>
           </div>
 
           <LightningCountdown siteId={site.id} />

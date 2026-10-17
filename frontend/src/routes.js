@@ -8,7 +8,7 @@
 //
 // Page URLs mirror the REST API resources they read from, e.g.
 //   /sites/turkey-point  <->  GET /api/sites/turkey-point
-// The full page -> API mapping is in docs/API_PLAN.md ("Frontend routes").
+// The full page -> API mapping is in docs/API.md ("Frontend routes").
 // =============================================================================
 import { segment, withQuery } from './utils/url.js';
 

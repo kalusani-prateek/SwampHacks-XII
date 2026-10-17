@@ -6,6 +6,18 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { hasRole, ROLES } from '../../utils/roles.js';
 import { USE_MOCKS } from '../../api/client.js';
 import { PATHS, urls } from '../../routes.js';
+import { notificationsSupported } from '../../hooks/useAlertNotifications.js';
+
+/** Asks once for permission to show browser notifications for new alerts. */
+function NotificationButton({ className }) {
+  const [permission, setPermission] = useState(() => (notificationsSupported() ? Notification.permission : 'unsupported'));
+  if (permission !== 'default') return null; // already allowed, blocked, or unsupported
+  return (
+    <button className={className} onClick={async () => setPermission(await Notification.requestPermission())}>
+      🔔 Enable alert notifications
+    </button>
+  );
+}
 
 // `roles` = who can see the link (undefined = everyone signed in).
 // Links use base paths (not /manage/overview) so NavLink highlights the
@@ -60,6 +72,7 @@ export default function Navbar({ activeAlertCount = 0 }) {
               MOCK DATA
             </span>
           )}
+          <NotificationButton className="rounded-md px-2 py-1 text-xs text-slate-300 hover:bg-white/10" />
           <span className="text-sm text-slate-300">
             {user.username} <span className="text-slate-500">({user.role})</span>
           </span>
@@ -78,6 +91,7 @@ export default function Navbar({ activeAlertCount = 0 }) {
       {open && (
         <nav className="space-y-1 border-t border-white/10 px-4 py-3 md:hidden">
           {links}
+          <NotificationButton className="block w-full rounded-md px-3 py-2 text-left text-sm text-slate-300" />
           <button onClick={handleLogout} className="block w-full rounded-md px-3 py-2 text-left text-sm text-slate-300">
             Sign out ({user.username})
           </button>

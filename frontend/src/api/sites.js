@@ -1,4 +1,4 @@
-// Site service - job sites, their combined risk picture and ML hazard forecast.
+// Site service - job sites, their combined risk picture and hazard forecast.
 import { apiRequest, mockNotFound, mockResponse, USE_MOCKS } from './client.js';
 import { ENDPOINTS } from './endpoints.js';
 import { mockStore } from '../mocks/store.js';
@@ -31,7 +31,7 @@ export async function getSite(siteId) {
 }
 
 /**
- * 7-day hazard index forecast produced by the ML model.
+ * 7-day hazard index forecast, scored from the daily weather forecast.
  * REST API PLACEHOLDER: GET /api/sites/:id/forecast  -> { forecast: [{ date, hazardIndex, topHazard }] }
  */
 export async function getSiteForecast(siteId) {
@@ -119,14 +119,18 @@ export async function deleteSite(siteId) {
 // ----------------------------------------------------------- Demo helper ----
 
 /**
- * MOCK-ONLY demo helper: record a strike "now" so the 30-minute countdown
- * visibly restarts. In production, strikes arrive from a lightning data feed
- * processed by the backend; there is no client endpoint for this.
+ * Demo helper: record a strike "now" so the 30-minute countdown visibly
+ * restarts. Real strikes come from NOAA's GOES lightning satellites; this is
+ * for demos only (supervisors, and only when the server has DEMO_TOOLS on).
+ * REST API PLACEHOLDER: POST /api/sites/:id/lightning/simulate  -> { lastStrikeAt, distanceMiles }
  */
-export function simulateLightningStrike(siteId) {
-  if (!USE_MOCKS) return;
-  mockStore.lightning[siteId] = {
-    lastStrikeAt: new Date().toISOString(),
-    distanceMiles: Math.round(Math.random() * 9 + 1),
-  };
+export async function simulateLightningStrike(siteId) {
+  if (USE_MOCKS) {
+    mockStore.lightning[siteId] = {
+      lastStrikeAt: new Date().toISOString(),
+      distanceMiles: Math.round(Math.random() * 9 + 1),
+    };
+    return mockResponse(mockStore.lightning[siteId], 0);
+  }
+  return apiRequest(ENDPOINTS.sites.simulateStrike(siteId), { method: 'POST' });
 }

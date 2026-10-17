@@ -45,7 +45,7 @@ export default function DashboardPage() {
     <>
       <PageHeader
         title="PlanIt Dashboard"
-        subtitle={`${all.length} monitored sites, ranked by ML hazard index (0-10)`}
+        subtitle={`${all.length} monitored sites, ranked by hazard index (0-10)`}
         actions={
           <select className="input w-auto" value={filter} onChange={(e) => setFilter(e.target.value)}>
             <option value="all">All sites</option>

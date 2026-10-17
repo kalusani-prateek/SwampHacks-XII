@@ -102,6 +102,7 @@ export default function UsersTab() {
               value={form[field]}
               onChange={(e) => setForm({ ...form, [field]: e.target.value })}
               required
+              minLength={field === 'password' ? 8 : 3} // matches the server's rules
             />
           </div>
         ))}

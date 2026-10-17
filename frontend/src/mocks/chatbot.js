@@ -2,7 +2,7 @@
 // MOCK CHATBOT - keyword-matching stand-in for the AI assistant so the chat UI
 // works without a backend. It answers from the mock store (sites, alerts,
 // rules, reports). It is NOT an AI: the real assistant is POST /api/chat, where
-// the backend calls Claude with live site data (docs/API_PLAN.md § AI assistant).
+// the backend calls Claude with live site data (docs/API.md § AI assistant).
 // Replies are plain text with "•" bullets, the same format the real model is
 // asked to use.
 // =============================================================================

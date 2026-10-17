@@ -7,6 +7,17 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  build: {
+    rollupOptions: {
+      output: {
+        // Libraries in their own files: smaller app bundle, and browsers keep them cached between releases.
+        manualChunks: {
+          react: ['react', 'react-dom', 'react-router-dom'],
+          map: ['leaflet', 'react-leaflet'],
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     // REST API PLACEHOLDER: when the Flask backend is running, requests to /api

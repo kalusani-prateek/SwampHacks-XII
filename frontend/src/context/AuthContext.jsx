@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import * as authApi from '../api/auth.js';
 import { USE_MOCKS } from '../api/client.js';
+import { clearOfflineData } from '../offline.js';
 
 const AuthContext = createContext(null);
 const MOCK_SESSION_KEY = 'planit-mock-user';
@@ -52,6 +53,7 @@ export function AuthProvider({ children }) {
 
   async function logout() {
     await authApi.logout();
+    clearOfflineData(); // the next person on a shared device shouldn't see this user's saved data
     // Both updates render together, so the redirect sees signedOut = true.
     setUser(null);
     setSignedOut(true);

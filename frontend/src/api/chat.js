@@ -1,6 +1,6 @@
 // AI assistant service. The browser never talks to the language model
 // directly: the Flask backend keeps the API key, adds live site data as
-// context, calls Claude and returns the reply (docs/API_PLAN.md § AI assistant).
+// context, calls Claude and returns the reply (docs/API.md § AI assistant).
 import { apiRequest, mockResponse, USE_MOCKS } from './client.js';
 import { ENDPOINTS } from './endpoints.js';
 import { mockChatReply } from '../mocks/chatbot.js';
