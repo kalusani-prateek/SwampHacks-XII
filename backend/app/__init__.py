@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify, make_response
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_bcrypt import Bcrypt
@@ -33,10 +33,29 @@ def create_app(config_class=Config):
     def unauthorized():
         return jsonify({'message': 'Authentication required'}), 401
 
+    # Custom error handlers to return JSON instead of HTML
+    @app.errorhandler(400)
+    def bad_request(e):
+        return jsonify({'message': 'Bad request: invalid syntax or missing required parameters'}), 400
+
+    @app.errorhandler(404)
+    def not_found(e):
+        return jsonify({'message': 'Resource not found'}), 404
+
+    @app.errorhandler(405)
+    def method_not_allowed(e):
+        return jsonify({'message': 'Method not allowed for this endpoint'}), 405
+
+    @app.errorhandler(500)
+    def internal_server_error(e):
+        return jsonify({'message': 'Internal server error'}), 500
+
     # Register blueprints
-    from app.routes import auth_bp, user_bp, admin_bp
+    from app.routes import auth_bp, user_bp, admin_bp, site_bp, incident_bp
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(user_bp, url_prefix='/api/users')
     app.register_blueprint(admin_bp, url_prefix='/api/admins')
 
+    app.register_blueprint(site_bp, url_prefix='/api/sites')
+    app.register_blueprint(incident_bp, url_prefix='/api/incidents')
     return app

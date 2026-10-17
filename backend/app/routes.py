@@ -1,12 +1,14 @@
 from flask import Blueprint, request, jsonify, make_response
 from app import db, bcrypt
-from app.models import User
+from app.models import User, Site, Incident
 from flask_login import login_user, logout_user, login_required, current_user
 
 # Blueprints
 auth_bp = Blueprint('auth', __name__)
 user_bp = Blueprint('user', __name__)
 admin_bp = Blueprint('admin', __name__)
+site_bp = Blueprint('site', __name__)
+incident_bp = Blueprint('incident', __name__)
 
 # Helper function to check if user is admin
 def admin_required():
@@ -18,6 +20,7 @@ def admin_required():
 @auth_bp.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
+    print("hello")
     if not data:
         return make_response(jsonify({'message': 'No input data provided'}), 400)
 
@@ -238,3 +241,102 @@ def delete_user_by_admin(user_id):
     db.session.commit()
 
     return make_response(jsonify({'message': 'User deleted successfully'}), 200)
+
+# Site routes
+@site_bp.route('/create_site', methods=['POST'])
+@login_required
+def create_site():
+    admin_check = admin_required()
+    if admin_check:
+        return admin_check
+
+    data = request.get_json()
+    if not data:
+        return make_response(jsonify({'message': 'No input data provided'}), 400)
+
+    name = data.get('name')
+    city = data.get('city')
+    state = data.get('state')
+
+    if not name or not city or not state:
+        return make_response(jsonify({'message': 'Missing required fields'}), 400)
+
+    if Site.query.filter_by(name=name).first():
+        return make_response(jsonify({'message': 'Site name already exists'}), 409)
+
+    new_site = Site(name=name, city=city, state=state)
+    db.session.add(new_site)
+    db.session.commit()
+
+    return make_response(jsonify({
+        'id': new_site.id,
+        'name': new_site.name,
+        'city': new_site.city,
+        'state': new_site.state
+    }), 201)
+
+@site_bp.route('/get_sites', methods=['GET'])
+def get_all_sites():
+    sites = Site.query.all()
+    return jsonify([{
+        'id': site.id,
+        'name': site.name,
+        'city': site.city,
+        'state': site.state
+    } for site in sites]), 200
+
+# Incident routes
+@incident_bp.route('/add_incident', methods=['POST'])
+@login_required
+def upload_incident():
+    data = request.get_json()
+    if not data:
+        return make_response(jsonify({'message': 'No input data provided'}), 400)
+
+    image = data.get('image')
+    location = data.get('location')
+    description = data.get('description')
+    site_id = data.get('site_id')
+
+    if not image or not location or not description:
+        return make_response(jsonify({'message': 'Missing required fields (image, location, description)'}), 400)
+
+    # Validate site_id if provided
+    if site_id is not None:
+        site = Site.query.get(site_id)
+        if not site:
+            return make_response(jsonify({'message': 'Site not found'}), 404)
+
+    new_incident = Incident(
+        users_username=current_user.username,
+        image=image,
+        location=location,
+        description=description,
+        site_id=site_id
+    )
+    db.session.add(new_incident)
+    db.session.commit()
+
+    return make_response(jsonify({
+        'id': new_incident.id,
+        'users_username': new_incident.users_username,
+        'image': new_incident.image,
+        'location': new_incident.location,
+        'description': new_incident.description,
+        'site_id': new_incident.site_id
+    }), 201)
+
+@incident_bp.route('/get_incidents', methods=['GET'])
+def get_all_incidents():
+    incidents = Incident.query.all()
+    return jsonify([{
+        'id': incident.id,
+        'users_username': incident.users_username,
+        'image': incident.image,
+        'location': incident.location,
+        'description': incident.description,
+        'site_id': incident.site_id
+    } for incident in incidents]), 200
+
+# Register blueprints
+# Note: In __init__.py we will register these blueprints with appropriate url_prefixes
