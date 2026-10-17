@@ -39,7 +39,7 @@ Real-time hazard monitoring for utility field crews at 58 real power-plant job s
 ```
 backend/     Flask REST API, background data jobs, tests   (backend/README.md)
 frontend/    React + Tailwind CSS web app, tests          (frontend/README.md)
-docs/        API.md (contract), DEPLOY.md, DEMO.md (5-minute walkthrough)
+docs/        ARCHITECTURE.md (how it all works), API.md (contract), DEPLOY.md, DEMO.md (5-minute walkthrough)
 ```
 
 ## Quick start
